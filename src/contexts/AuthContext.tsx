@@ -17,6 +17,7 @@ interface AuthContextType {
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,7 +42,8 @@ const mapFirebaseUser = async (firebaseUser: FirebaseUser | null): Promise<User 
         id: firebaseUser.uid,
         name: data.name || firebaseUser.displayName || 'User',
         email: firebaseUser.email || '',
-        avatar: data.avatar || firebaseUser.photoURL || undefined
+        avatar: data.avatar || firebaseUser.photoURL || undefined,
+        role: data.role || 'user' // Default to 'user' if role not set
       };
     }
   } catch (error) {
@@ -53,7 +55,8 @@ const mapFirebaseUser = async (firebaseUser: FirebaseUser | null): Promise<User 
     id: firebaseUser.uid,
     name: firebaseUser.displayName || 'User',
     email: firebaseUser.email || '',
-    avatar: firebaseUser.photoURL || undefined
+    avatar: firebaseUser.photoURL || undefined,
+    role: 'user' // Default role
   };
 };
 
@@ -65,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       const mappedUser = await mapFirebaseUser(firebaseUser);
       setUser(mappedUser);
-      setLoading(false);
+    setLoading(false);
     });
 
     return () => unsubscribe();
@@ -81,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
       throw new Error(error.message || 'Login failed');
     } finally {
-      setLoading(false);
+    setLoading(false);
     }
   };
 
@@ -95,10 +98,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Create user document in Firestore
       await setDoc(doc(db, 'users', userCredential.user.uid), {
-        name,
-        email,
+      name,
+      email,
         createdAt: new Date().toISOString(),
-        avatar: null
+        avatar: null,
+        role: 'user' // Default role for new users
       });
 
       const mappedUser = await mapFirebaseUser(userCredential.user);
@@ -107,7 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
       throw new Error(error.message || 'Signup failed');
     } finally {
-      setLoading(false);
+    setLoading(false);
     }
   };
 
@@ -115,7 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       await signOut(auth);
-      setUser(null);
+    setUser(null);
     } catch (error: any) {
       console.error('Logout error:', error);
       throw new Error(error.message || 'Logout failed');
@@ -124,8 +128,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const isAdmin = user?.role === 'admin';
+
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, loading, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

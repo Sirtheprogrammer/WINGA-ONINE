@@ -8,10 +8,6 @@ import { AuthModal } from './components/AuthModal';
 import { ProductDetail } from './components/ProductDetail';
 import { Wishlist } from './components/Wishlist';
 import { Footer } from './components/Footer';
-import { AuthProvider } from './contexts/AuthContext';
-import { CartProvider } from './contexts/CartContext';
-import { WishlistProvider } from './contexts/WishlistContext';
-import { ToastProvider } from './contexts/ToastContext';
 import { DiscountBanner } from './components/DiscountBanner';
 import { useProducts } from './hooks/useProducts';
 import { Product } from './types';
@@ -26,6 +22,7 @@ function AppContent() {
 
   const {
     products,
+    loading: productsLoading,
     searchQuery,
     setSearchQuery,
     filters,
@@ -113,7 +110,16 @@ function AppContent() {
             </div>
 
             {/* Products Grid */}
-            <ProductGrid products={products} onProductClick={handleProductClick} />
+            {productsLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading products...</p>
+                </div>
+              </div>
+            ) : (
+              <ProductGrid products={products} onProductClick={handleProductClick} />
+            )}
           </div>
         </div>
       </div>
@@ -136,17 +142,7 @@ function AppContent() {
 }
 
 function App() {
-  return (
-    <ToastProvider>
-      <AuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <AppContent />
-          </WishlistProvider>
-        </CartProvider>
-      </AuthProvider>
-    </ToastProvider>
-  );
+  return <AppContent />;
 }
 
 export default App;

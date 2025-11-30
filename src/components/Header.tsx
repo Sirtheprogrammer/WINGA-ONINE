@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ShoppingCart, User, Heart, Menu, X } from 'lucide-react';
+import { Search, ShoppingCart, User, Heart, Menu, X, Package } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -65,6 +65,16 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Navigation Icons - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
+            {user && (
+              <button
+                onClick={() => window.location.href = '/orders'}
+                className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                title="My Orders"
+              >
+                <Package className="h-6 w-6" />
+              </button>
+            )}
+
             <button
               onClick={onWishlistClick}
               className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
@@ -134,6 +144,19 @@ export const Header: React.FC<HeaderProps> = ({
       {isMobileMenuOpen && (
         <div className="md:hidden border-t bg-white">
           <div className="px-2 pt-2 pb-3 space-y-1">
+            {user && (
+              <button
+                onClick={() => {
+                  window.location.href = '/orders';
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center w-full px-3 py-2 text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors duration-200"
+              >
+                <Package className="h-5 w-5 mr-3" />
+                My Orders
+              </button>
+            )}
+
             <button
               onClick={() => {
                 onWishlistClick();

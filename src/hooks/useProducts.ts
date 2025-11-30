@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Product, FilterOptions } from '../types';
-import { products as localProducts } from '../data/products';
 import { fetchProductsFromFirestore } from '../services/products';
 
 export const useProducts = () => {
@@ -14,24 +13,27 @@ export const useProducts = () => {
   });
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'rating'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [loading, setLoading] = useState(true);
 
-  const [allProducts, setAllProducts] = useState<Product[]>(localProducts as Product[]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     let mounted = true;
     const load = async () => {
+      setLoading(true);
       try {
         const remote = await fetchProductsFromFirestore();
-        if (mounted && remote.length > 0) {
+        if (mounted) {
           setAllProducts(remote);
-        } else if (mounted) {
-          // Keep local products if Firebase is empty
-          setAllProducts(localProducts as Product[]);
         }
       } catch (e) {
-        // Fallback to local data silently
+        console.error('Error loading products:', e);
         if (mounted) {
-          setAllProducts(localProducts as Product[]);
+          setAllProducts([]);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
         }
       }
     };
@@ -100,6 +102,7 @@ export const useProducts = () => {
 
   return {
     products: filteredProducts,
+    loading,
     searchQuery,
     setSearchQuery,
     filters,

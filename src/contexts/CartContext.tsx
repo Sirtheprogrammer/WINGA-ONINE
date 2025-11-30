@@ -24,14 +24,27 @@ export const useCart = () => {
   return context;
 };
 
+// Initialize cart from localStorage immediately (synchronous)
+const getInitialCart = (): CartItem[] => {
+  try {
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      return JSON.parse(savedCart);
+    }
+  } catch (error) {
+    console.error('Error loading cart from localStorage:', error);
+  }
+  return [];
+};
+
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(getInitialCart);
   const { user } = useAuth();
   const { showToast } = useToast();
   const isInitialLoad = useRef(true);
   const isSyncing = useRef(false);
 
-  // Load cart on mount or when user changes
+  // Load cart from Firebase when user is logged in (async)
   useEffect(() => {
     const loadCart = async () => {
       isInitialLoad.current = true;
@@ -40,18 +53,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Load from Firebase if user is logged in
         try {
           const firebaseCart = await fetchCartFromFirebase(user.id);
-          setItems(firebaseCart);
+          if (firebaseCart.length > 0) {
+            setItems(firebaseCart);
+          }
           isInitialLoad.current = false;
           return;
         } catch (error) {
           console.error('Error loading cart from Firebase:', error);
         }
-      }
-      
-      // Fallback to localStorage
-      const savedCart = localStorage.getItem('cart');
-      if (savedCart) {
-        setItems(JSON.parse(savedCart));
       }
       
       isInitialLoad.current = false;

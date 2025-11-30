@@ -11,28 +11,35 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Products collection - readable by everyone, writable by authenticated users
-    match /products/{productId} {
-      allow read: if true; // Anyone can read products
-      allow create: if isAuthenticated(); // Only authenticated users can create
-      allow update: if isAuthenticated(); // Only authenticated users can update
-      allow delete: if isAuthenticated(); // Only authenticated users can delete
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Categories collection - readable by everyone, writable by authenticated users
+    // Products collection - readable by everyone, writable by admins
+    match /products/{productId} {
+      allow read: if true; // Anyone can read products
+      allow create: if isAdmin(); // Only admins can create
+      allow update: if isAdmin(); // Only admins can update
+      allow delete: if isAdmin(); // Only admins can delete
+    }
+
+    // Categories collection - readable by everyone, writable by admins
     match /categories/{categoryId} {
       allow read: if true; // Anyone can read categories
-      allow create: if isAuthenticated(); // Only authenticated users can create
-      allow update: if isAuthenticated(); // Only authenticated users can update
-      allow delete: if isAuthenticated(); // Only authenticated users can delete
+      allow create: if isAdmin(); // Only admins can create
+      allow update: if isAdmin(); // Only admins can update
+      allow delete: if isAdmin(); // Only admins can delete
     }
 
     // Users collection - users can read their own data, create their own document
+    // Admins can read/update/delete all users
     match /users/{userId} {
-      allow read: if isOwner(userId); // Users can only read their own data
+      allow read: if isAuthenticated(); // Admins can read all, users can read their own
       allow create: if isOwner(userId); // Users can create their own document
-      allow update: if isOwner(userId); // Users can update their own document
-      allow delete: if isOwner(userId); // Users can delete their own document
+      allow update: if isAdmin() || isOwner(userId); // Admins can update all, users can update their own
+      allow delete: if isAdmin(); // Only admins can delete users
     }
 
     // Carts collection - users can only access their own cart
@@ -49,6 +56,15 @@ service cloud.firestore {
       allow create: if isOwner(userId); // Users can create their own wishlist
       allow update: if isOwner(userId); // Users can update their own wishlist
       allow delete: if isOwner(userId); // Users can delete their own wishlist
+    }
+
+    // Orders collection - users can create their own orders, read their own orders
+    // Admins can read and update all orders
+    match /orders/{orderId} {
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read: if isAuthenticated(); // Admins can read all, users can read their own
+      allow update: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid); // Admins can update all orders, users can update their own
+      allow delete: if false; // Orders should not be deleted
     }
 
     // Deny all other access

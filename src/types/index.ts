@@ -29,6 +29,7 @@ export interface User {
   name: string;
   email: string;
   avatar?: string;
+  role?: 'user' | 'admin'; // Default is 'user'
 }
 
 export interface Category {

@@ -17,7 +17,8 @@ export const Cart: React.FC<CartProps> = ({ isOpen, onClose }) => {
       alert('Please login to proceed with checkout');
       return;
     }
-    alert('Checkout functionality would be implemented here');
+    onClose();
+    window.location.href = '/checkout';
   };
 
   if (!isOpen) return null;
@@ -59,7 +60,7 @@ export const Cart: React.FC<CartProps> = ({ isOpen, onClose }) => {
                     
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-800 text-sm">{item.product.name}</h4>
-                      <p className="text-sm text-gray-500">${item.product.price}</p>
+                      <p className="text-sm text-gray-500">TZS {item.product.price.toLocaleString()}</p>
                       
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center space-x-2">
@@ -99,7 +100,7 @@ export const Cart: React.FC<CartProps> = ({ isOpen, onClose }) => {
             <div className="border-t p-4 space-y-4">
               <div className="flex justify-between items-center text-lg font-semibold">
                 <span>Total:</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>TZS {totalPrice.toLocaleString()}</span>
               </div>
               
               <div className="space-y-2">

@@ -116,12 +116,12 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, isOpen, o
                 {/* Price */}
                 <div className="flex items-center space-x-3 mb-6">
                   <span className="text-3xl font-bold text-gray-900">
-                    ${product.price}
+                    TZS {product.price.toLocaleString()}
                   </span>
                   {product.originalPrice && (
                     <>
                       <span className="text-xl text-gray-500 line-through">
-                        ${product.originalPrice}
+                        TZS {product.originalPrice.toLocaleString()}
                       </span>
                       {hasActiveDiscount && product.discount && (
                         <DiscountBadge 
@@ -146,7 +146,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, isOpen, o
                       />
                     </div>
                     <p className="text-red-700 text-sm mb-3">
-                      Save ${product.originalPrice! - product.price} on this amazing product!
+                      Save TZS {(product.originalPrice! - product.price).toLocaleString()} on this amazing product!
                     </p>
                     <div className="flex items-center space-x-2">
                       <span className="text-red-700 font-semibold">Offer ends in:</span>

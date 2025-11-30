@@ -11,7 +11,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ filters, onFilterChange, isOpen, onClose }) => {
-  const categories = useCategories();
+  const { categories, loading } = useCategories();
   
   const handleCategoryChange = (category: string) => {
     onFilterChange({ ...filters, category });
@@ -33,7 +33,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ filters, onFilterChange, isOpe
           >
             All Products
           </button>
-          {categories.map((category) => {
+          {loading ? (
+            <div className="text-sm text-gray-500 py-2">Loading categories...</div>
+          ) : categories.length === 0 ? (
+            <div className="text-sm text-gray-500 py-2">No categories available</div>
+          ) : (
+            categories.map((category) => {
             const IconComponent = (Icons as any)[category.icon] || Icons.Package;
             return (
               <button
@@ -48,9 +53,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ filters, onFilterChange, isOpe
                 <IconComponent className="h-5 w-5" />
                 <span className="flex-1">{category.name}</span>
                 <span className="text-sm">({category.count})</span>
-              </button>
-            );
-          })}
+                </button>
+              );
+            })
+          )}
         </div>
       </div>
 

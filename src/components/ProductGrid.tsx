@@ -11,9 +11,11 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products, onProductCli
   if (products.length === 0) {
     return (
       <div className="col-span-full flex flex-col items-center justify-center py-16">
-        <div className="text-6xl mb-4">🔍</div>
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">No products found</h3>
-        <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+        <div className="text-6xl mb-4">📦</div>
+        <h3 className="text-xl font-semibold text-gray-800 mb-2">No products available</h3>
+        <p className="text-gray-500 text-center max-w-md">
+          There are no products in the catalog yet. Check back soon or contact the administrator.
+        </p>
       </div>
     );
   }
