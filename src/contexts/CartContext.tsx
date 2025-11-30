@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { CartItem, Product } from '../types';
 import { useAuth } from './AuthContext';
+import { useToast } from './ToastContext';
 import { syncCartToFirebase, fetchCartFromFirebase, clearCartFromFirebase } from '../services/cart';
 
 interface CartContextType {
@@ -26,6 +27,7 @@ export const useCart = () => {
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const { user } = useAuth();
+  const { showToast } = useToast();
   const isInitialLoad = useRef(true);
   const isSyncing = useRef(false);
 
@@ -84,13 +86,24 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const existingItem = currentItems.find(item => item.product.id === product.id);
       
       if (existingItem) {
+        const newQuantity = existingItem.quantity + quantity;
+        showToast(
+          `Updated: ${product.name} (${newQuantity} in cart)`,
+          'success',
+          3000
+        );
         return currentItems.map(item =>
           item.product.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: newQuantity }
             : item
         );
       }
       
+      showToast(
+        `✓ ${product.name} added to cart!`,
+        'success',
+        3000
+      );
       return [...currentItems, { product, quantity }];
     });
   };
