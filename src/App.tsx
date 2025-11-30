@@ -45,7 +45,7 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header
         onSearchChange={setSearchQuery}
         onCartClick={() => setIsCartOpen(true)}
@@ -53,7 +53,7 @@ function AppContent() {
         onWishlistClick={() => setIsWishlistOpen(true)}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         <div className="flex gap-8">
           {/* Sidebar */}
           <div className="hidden lg:block flex-shrink-0">

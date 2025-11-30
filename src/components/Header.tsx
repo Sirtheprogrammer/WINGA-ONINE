@@ -82,6 +82,22 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
+          {/* Mobile Cart Icon - Visible on mobile */}
+          <div className="md:hidden flex items-center space-x-2">
+            <button
+              onClick={onCartClick}
+              className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+              title="Shopping Cart"
+            >
+              <ShoppingCart className="h-6 w-6" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
+                  {totalItems}
+                </span>
+              )}
+            </button>
+          </div>
+
           {/* Navigation Icons - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
             {user && (
