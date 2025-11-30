@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Package, Users, ShoppingBag, Plus, Edit2, Trash2, X, Save, Search, Filter, Tag } from 'lucide-react';
+import { Package, Users, ShoppingBag, Plus, Edit2, Trash2, X, Save, Search, Filter, Tag, LogOut } from 'lucide-react';
 import { Product, Category } from '../types';
 import { Order } from '../services/orders';
 import { User } from '../types';
@@ -13,7 +13,7 @@ import * as Icons from 'lucide-react';
 type Tab = 'products' | 'orders' | 'users' | 'categories';
 
 export const AdminPanel: React.FC = () => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<Tab>('products');
   
@@ -284,6 +284,18 @@ export const AdminPanel: React.FC = () => {
     setShowCategoryForm(false);
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      showToast('Logged out successfully', 'success');
+      // Redirect to home page
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout error:', error);
+      showToast('Failed to logout', 'error');
+    }
+  };
+
   const handleUserDelete = async (userId: string) => {
     if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
     try {
@@ -363,12 +375,29 @@ export const AdminPanel: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
-            <button
-              onClick={() => window.location.href = '/'}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              ← Back to Shop
-            </button>
+            <div className="flex items-center space-x-4">
+              {user && (
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <span>{user.name}</span>
+                  {user.avatar && (
+                    <img src={user.avatar} alt={user.name} className="h-8 w-8 rounded-full" />
+                  )}
+                </div>
+              )}
+              <button
+                onClick={() => window.location.href = '/'}
+                className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                ← Back to Shop
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

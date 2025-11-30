@@ -33,9 +33,17 @@ export const useAuth = () => {
 const mapFirebaseUser = async (firebaseUser: FirebaseUser | null): Promise<User | null> => {
   if (!firebaseUser) return null;
 
-  // Try to get user data from Firestore
+  // Try to get user data from Firestore with timeout for faster loading
   try {
-    const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+    const timeoutPromise = new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error('Timeout')), 2000)
+    );
+    
+    const userDoc = await Promise.race([
+      getDoc(doc(db, 'users', firebaseUser.uid)),
+      timeoutPromise
+    ]);
+    
     if (userDoc.exists()) {
       const data = userDoc.data();
       return {
@@ -47,10 +55,14 @@ const mapFirebaseUser = async (firebaseUser: FirebaseUser | null): Promise<User 
       };
     }
   } catch (error) {
-    console.error('Error fetching user data:', error);
+    // If Firestore is slow or fails, fallback to Auth data (faster)
+    // This ensures auth state loads quickly even if Firestore is slow
+    if (error instanceof Error && error.message !== 'Timeout') {
+      console.error('Error fetching user data:', error);
+    }
   }
 
-  // Fallback to Firebase Auth data
+  // Fallback to Firebase Auth data (faster, no network call)
   return {
     id: firebaseUser.uid,
     name: firebaseUser.displayName || 'User',
@@ -65,13 +77,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      const mappedUser = await mapFirebaseUser(firebaseUser);
-      setUser(mappedUser);
-    setLoading(false);
+      if (!isMounted) return;
+      
+      try {
+        const mappedUser = await mapFirebaseUser(firebaseUser);
+        if (isMounted) {
+          setUser(mappedUser);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error mapping user:', error);
+        if (isMounted) {
+          setUser(null);
+          setLoading(false);
+        }
+      }
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
