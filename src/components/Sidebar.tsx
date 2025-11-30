@@ -1,7 +1,7 @@
 import React from 'react';
 import { FilterOptions } from '../types';
 import * as Icons from 'lucide-react';
-import { categories } from '../data/products';
+import { useCategories } from '../hooks/useCategories';
 
 interface SidebarProps {
   filters: FilterOptions;
@@ -11,6 +11,8 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ filters, onFilterChange, isOpen, onClose }) => {
+  const categories = useCategories();
+  
   const handleCategoryChange = (category: string) => {
     onFilterChange({ ...filters, category });
   };

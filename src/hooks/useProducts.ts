@@ -22,9 +22,17 @@ export const useProducts = () => {
     const load = async () => {
       try {
         const remote = await fetchProductsFromFirestore();
-        if (mounted && remote.length > 0) setAllProducts(remote);
+        if (mounted && remote.length > 0) {
+          setAllProducts(remote);
+        } else if (mounted) {
+          // Keep local products if Firebase is empty
+          setAllProducts(localProducts as Product[]);
+        }
       } catch (e) {
         // Fallback to local data silently
+        if (mounted) {
+          setAllProducts(localProducts as Product[]);
+        }
       }
     };
     load();

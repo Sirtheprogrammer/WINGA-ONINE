@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { Product } from '../types';
+import { useAuth } from './AuthContext';
+import { syncWishlistToFirebase, fetchWishlistFromFirebase, clearWishlistFromFirebase } from '../services/wishlist';
 
 interface WishlistContextType {
   items: Product[];
@@ -21,17 +23,59 @@ export const useWishlist = () => {
 
 export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<Product[]>([]);
+  const { user } = useAuth();
+  const isInitialLoad = useRef(true);
+  const isSyncing = useRef(false);
 
+  // Load wishlist on mount or when user changes
   useEffect(() => {
-    const savedWishlist = localStorage.getItem('wishlist');
-    if (savedWishlist) {
-      setItems(JSON.parse(savedWishlist));
+    const loadWishlist = async () => {
+      isInitialLoad.current = true;
+      
+      if (user) {
+        // Load from Firebase if user is logged in
+        try {
+          const firebaseWishlist = await fetchWishlistFromFirebase(user.id);
+          setItems(firebaseWishlist);
+          isInitialLoad.current = false;
+          return;
+        } catch (error) {
+          console.error('Error loading wishlist from Firebase:', error);
+        }
+      }
+      
+      // Fallback to localStorage
+      const savedWishlist = localStorage.getItem('wishlist');
+      if (savedWishlist) {
+        setItems(JSON.parse(savedWishlist));
+      }
+      
+      isInitialLoad.current = false;
+    };
+    
+    loadWishlist();
+  }, [user]);
+
+  // Sync to Firebase when items change and user is logged in (but not on initial load)
+  useEffect(() => {
+    if (isInitialLoad.current || isSyncing.current) {
+      return;
     }
-  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('wishlist', JSON.stringify(items));
-  }, [items]);
+    if (user) {
+      isSyncing.current = true;
+      syncWishlistToFirebase(user.id, items)
+        .catch(error => {
+          console.error('Error syncing wishlist to Firebase:', error);
+        })
+        .finally(() => {
+          isSyncing.current = false;
+        });
+    } else {
+      // Save to localStorage if not logged in
+      localStorage.setItem('wishlist', JSON.stringify(items));
+    }
+  }, [items, user]);
 
   const addToWishlist = (product: Product) => {
     setItems(currentItems => {
@@ -50,8 +94,15 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return items.some(item => item.id === productId);
   };
 
-  const clearWishlist = () => {
+  const clearWishlist = async () => {
     setItems([]);
+    if (user) {
+      try {
+        await clearWishlistFromFirebase(user.id);
+      } catch (error) {
+        console.error('Error clearing wishlist from Firebase:', error);
+      }
+    }
   };
 
   return (

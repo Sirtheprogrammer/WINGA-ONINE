@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Products collection - readable by everyone, writable by authenticated users
+    match /products/{productId} {
+      allow read: if true; // Anyone can read products
+      allow create: if isAuthenticated(); // Only authenticated users can create
+      allow update: if isAuthenticated(); // Only authenticated users can update
+      allow delete: if isAuthenticated(); // Only authenticated users can delete
+    }
+
+    // Categories collection - readable by everyone, writable by authenticated users
+    match /categories/{categoryId} {
+      allow read: if true; // Anyone can read categories
+      allow create: if isAuthenticated(); // Only authenticated users can create
+      allow update: if isAuthenticated(); // Only authenticated users can update
+      allow delete: if isAuthenticated(); // Only authenticated users can delete
+    }
+
+    // Users collection - users can read their own data, create their own document
+    match /users/{userId} {
+      allow read: if isOwner(userId); // Users can only read their own data
+      allow create: if isOwner(userId); // Users can create their own document
+      allow update: if isOwner(userId); // Users can update their own document
+      allow delete: if isOwner(userId); // Users can delete their own document
+    }
+
+    // Carts collection - users can only access their own cart
+    match /carts/{userId} {
+      allow read: if isOwner(userId); // Users can only read their own cart
+      allow create: if isOwner(userId); // Users can create their own cart
+      allow update: if isOwner(userId); // Users can update their own cart
+      allow delete: if isOwner(userId); // Users can delete their own cart
+    }
+
+    // Wishlists collection - users can only access their own wishlist
+    match /wishlists/{userId} {
+      allow read: if isOwner(userId); // Users can only read their own wishlist
+      allow create: if isOwner(userId); // Users can create their own wishlist
+      allow update: if isOwner(userId); // Users can update their own wishlist
+      allow delete: if isOwner(userId); // Users can delete their own wishlist
+    }
+
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
