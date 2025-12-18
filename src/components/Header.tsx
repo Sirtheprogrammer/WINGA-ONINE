@@ -72,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0">
-            <div className="text-xl sm:text-2xl font-bold text-blue-600">ShopHub</div>
+            <div className="text-xl sm:text-2xl font-bold text-blue-600">BeiPOa online</div>
           </div>
 
           {/* Search Bar - Hidden on mobile */}
