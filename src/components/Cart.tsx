@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { navigateToCheckout } from '../utils/navigation';
 
 interface CartProps {
   isOpen: boolean;
@@ -18,7 +19,7 @@ export const Cart: React.FC<CartProps> = ({ isOpen, onClose }) => {
       return;
     }
     onClose();
-    window.location.href = '/checkout';
+    navigateToCheckout();
   };
 
   if (!isOpen) return null;

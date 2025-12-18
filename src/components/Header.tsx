@@ -5,6 +5,7 @@ import { useWishlist } from '../contexts/WishlistContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { SearchAutocomplete } from './SearchAutocomplete';
+import { navigateToHome, navigateToOrders } from '../utils/navigation';
 import { Product } from '../types';
 
 interface HeaderProps {
@@ -54,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({
       showToast('Logged out successfully', 'success');
       setIsMobileMenuOpen(false);
       // Redirect to home page
-      window.location.href = '/';
+      navigateToHome();
     } catch (error) {
       console.error('Logout error:', error);
       showToast('Failed to logout', 'error');
@@ -62,7 +63,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const handleMyOrders = () => {
-    window.location.href = '/orders';
+    navigateToOrders();
     setIsMobileMenuOpen(false);
   };
 

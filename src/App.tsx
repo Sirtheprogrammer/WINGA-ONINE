@@ -9,9 +9,11 @@ import { AuthModal } from './components/AuthModal';
 import { ProductDetail } from './components/ProductDetail';
 import { Wishlist } from './components/Wishlist';
 import { Footer } from './components/Footer';
-import { DiscountBanner } from './components/DiscountBanner';
+import { OfferCarousel } from './components/OfferCarousel';
+import { SnowEffect } from './components/SnowEffect';
 import { SEO } from './components/SEO';
 import { useProducts } from './hooks/useProducts';
+import { useOfferSettings } from './hooks/useOfferSettings';
 import { Product } from './types';
 
 function AppContent() {
@@ -35,6 +37,8 @@ function AppContent() {
     sortOrder,
     setSortOrder
   } = useProducts();
+
+  const { settings: offerSettings, loading: offerLoading } = useOfferSettings();
 
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
@@ -81,12 +85,15 @@ function AppContent() {
 
           {/* Main Content */}
           <div className="flex-1 min-w-0">
-            {/* Discount Banner */}
-            <DiscountBanner
-              title="🔥 Flash Sale - Up to 35% Off!"
-              description="Limited time offer on selected premium products. Don't miss out!"
-              endDate="2025-02-20T23:59:59Z"
-            />
+            {/* Snow Effect - Show when Christmas carousel is active */}
+            {!offerLoading && offerSettings && offerSettings.carouselType === 'christmas' && offerSettings.isActive && (
+              <SnowEffect />
+            )}
+            
+            {/* Offer Carousel */}
+            {!offerLoading && offerSettings && (
+              <OfferCarousel settings={offerSettings} />
+            )}
 
             {/* Mobile Filter Toggle and Sort */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">

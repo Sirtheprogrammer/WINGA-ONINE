@@ -68,6 +68,12 @@ service cloud.firestore {
       allow delete: if false; // Orders should not be deleted
     }
 
+    // Settings collection - readable by everyone, writable by admins
+    match /settings/{settingId} {
+      allow read: if true; // Anyone can read settings
+      allow write: if isAdmin(); // Only admins can write settings
+    }
+
     // Deny all other access
     match /{document=**} {
       allow read, write: if false;

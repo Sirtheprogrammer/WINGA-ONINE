@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Package, Users, ShoppingBag, Plus, Edit2, Trash2, X, Save, Search, Filter, Tag, LogOut, Upload, Loader2 } from 'lucide-react';
+import { Package, Users, ShoppingBag, Plus, Edit2, Trash2, X, Save, Search, Filter, Tag, LogOut, Upload, Loader2, Settings } from 'lucide-react';
 import { Product, Category } from '../types';
 import { Order } from '../services/orders';
 import { User } from '../types';
@@ -10,9 +10,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { LoadingScreen } from './LoadingScreen';
 import { uploadImageToImgBB, uploadMultipleImagesToImgBB, validateImageFile } from '../services/imgbb';
+import { OfferSettings, CarouselType, getOfferSettings, updateOfferSettings } from '../services/offerSettings';
+import { navigateToHome } from '../utils/navigation';
 import * as Icons from 'lucide-react';
 
-type Tab = 'products' | 'orders' | 'users' | 'categories';
+type Tab = 'products' | 'orders' | 'users' | 'categories' | 'settings';
 
 export const AdminPanel: React.FC = () => {
   const { user, isAdmin, logout, loading: authLoading } = useAuth();
@@ -55,6 +57,17 @@ export const AdminPanel: React.FC = () => {
   const [editingCategoryId, setEditingCategoryId] = useState<string>('');
   const [showCategoryForm, setShowCategoryForm] = useState(false);
 
+  // Offer Settings state
+  const [offerSettings, setOfferSettings] = useState<OfferSettings>({
+    carouselType: 'normal',
+    startDate: new Date().toISOString(),
+    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16), // Default: 7 days from now
+    title: 'Welcome to BEIPOA online',
+    description: 'Shop the best deals and affordable products in Tanzania',
+    isActive: false
+  });
+  const [offerSettingsLoading, setOfferSettingsLoading] = useState(true);
+
   // Check admin access on mount
   useEffect(() => {
     if (!authLoading) {
@@ -70,6 +83,28 @@ export const AdminPanel: React.FC = () => {
       }
     }
   }, [authLoading, user, isAdmin]);
+
+  // Load offer settings when admin and settings tab is accessed
+  useEffect(() => {
+    if (initialLoading || !isAdmin) return;
+    
+    if (activeTab === 'settings' && offerSettingsLoading) {
+      const loadSettings = async () => {
+        try {
+          const settings = await getOfferSettings();
+          // Convert ISO date strings to datetime-local format
+          const startDate = settings.startDate ? new Date(settings.startDate).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16);
+          const endDate = settings.endDate ? new Date(settings.endDate).toISOString().slice(0, 16) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
+          setOfferSettings({ ...settings, startDate, endDate });
+          setOfferSettingsLoading(false);
+        } catch (error) {
+          console.error('Error loading offer settings:', error);
+          setOfferSettingsLoading(false);
+        }
+      };
+      loadSettings();
+    }
+  }, [activeTab, initialLoading, isAdmin, offerSettingsLoading]);
 
   // Load data - optimized for faster loading
   useEffect(() => {
@@ -472,7 +507,7 @@ export const AdminPanel: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Access Denied</h2>
           <p className="text-gray-600 mb-6">Please login to access the admin panel</p>
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={() => navigateToHome()}
             className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700"
           >
             Go to Home
@@ -492,7 +527,7 @@ export const AdminPanel: React.FC = () => {
             Contact an administrator to assign you the admin role.
           </p>
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={() => navigateToHome()}
             className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700"
           >
             Go to Home
@@ -520,7 +555,7 @@ export const AdminPanel: React.FC = () => {
                 </div>
               )}
               <button
-                onClick={() => window.location.href = '/'}
+                onClick={() => navigateToHome()}
                 className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors whitespace-nowrap"
               >
                 <span className="hidden sm:inline">← Back to Shop</span>
@@ -588,6 +623,17 @@ export const AdminPanel: React.FC = () => {
               <Tag className="h-4 w-4 sm:h-5 sm:w-5 inline mr-1 sm:mr-2" />
               <span className="text-sm sm:text-base">Categories</span>
               <span className="ml-1 text-xs sm:text-sm">({categories.length})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 text-center font-medium transition-colors whitespace-nowrap ${
+                activeTab === 'settings'
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <Settings className="h-4 w-4 sm:h-5 sm:w-5 inline mr-1 sm:mr-2" />
+              <span className="text-sm sm:text-base">Settings</span>
             </button>
           </div>
         </div>
@@ -1310,6 +1356,147 @@ export const AdminPanel: React.FC = () => {
                     );
                   })}
                 </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Settings Tab */}
+        {activeTab === 'settings' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Offer Carousel Settings</h2>
+              
+              {offerSettingsLoading ? (
+                <div className="text-center py-8">Loading settings...</div>
+              ) : (
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    try {
+                      // Convert datetime-local to ISO string
+                      const startDateISO = new Date(offerSettings.startDate).toISOString();
+                      const endDateISO = new Date(offerSettings.endDate).toISOString();
+                      
+                      await updateOfferSettings({
+                        ...offerSettings,
+                        startDate: startDateISO,
+                        endDate: endDateISO
+                      });
+                      showToast('Offer settings updated successfully', 'success');
+                    } catch (error: any) {
+                      showToast(`Failed to update settings: ${error.message}`, 'error');
+                    }
+                  }}
+                  className="space-y-4 sm:space-y-6"
+                >
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Carousel Type *</label>
+                    <select
+                      value={offerSettings.carouselType}
+                      onChange={(e) => setOfferSettings({ ...offerSettings, carouselType: e.target.value as CarouselType })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    >
+                      <option value="normal">Normal (Welcome Message)</option>
+                      <option value="christmas">Christmas & New Year</option>
+                      <option value="special-offer">Special Offer</option>
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {offerSettings.carouselType === 'christmas' && 'Blue and green colors with snow effects'}
+                      {offerSettings.carouselType === 'special-offer' && 'Red, pink, and purple gradient with animated effects'}
+                      {offerSettings.carouselType === 'normal' && 'Default welcome message for BEIPOA online'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                    <input
+                      type="text"
+                      required
+                      value={offerSettings.title}
+                      onChange={(e) => setOfferSettings({ ...offerSettings, title: e.target.value })}
+                      placeholder="e.g., 🎄 Christmas & New Year Special! 🎉"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                    <textarea
+                      required
+                      value={offerSettings.description}
+                      onChange={(e) => setOfferSettings({ ...offerSettings, description: e.target.value })}
+                      placeholder="e.g., Celebrate with amazing deals and discounts!"
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Start Date & Time</label>
+                      <input
+                        type="datetime-local"
+                        value={offerSettings.startDate}
+                        onChange={(e) => setOfferSettings({ ...offerSettings, startDate: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">End Date & Time *</label>
+                      <input
+                        type="datetime-local"
+                        required
+                        value={offerSettings.endDate}
+                        onChange={(e) => setOfferSettings({ ...offerSettings, endDate: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">When time expires, carousel returns to normal</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="isActive"
+                      checked={offerSettings.isActive}
+                      onChange={(e) => setOfferSettings({ ...offerSettings, isActive: e.target.checked })}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="isActive" className="ml-2 text-sm font-medium text-gray-700">
+                      Activate Offer (Carousel will show when active and time is valid)
+                    </label>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+                    <button
+                      type="submit"
+                      className="flex-1 sm:flex-none px-6 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm sm:text-base"
+                    >
+                      <Save className="h-4 w-4 sm:h-5 sm:w-5 inline mr-2" />
+                      Save Settings
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const settings = await getOfferSettings();
+                          // Convert ISO date strings to datetime-local format
+                          const startDate = settings.startDate ? new Date(settings.startDate).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16);
+                          const endDate = settings.endDate ? new Date(settings.endDate).toISOString().slice(0, 16) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
+                          setOfferSettings({ ...settings, startDate, endDate });
+                          showToast('Settings reset to current values', 'info');
+                        } catch (error) {
+                          showToast('Failed to reset settings', 'error');
+                        }
+                      }}
+                      className="flex-1 sm:flex-none px-6 py-2.5 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors text-sm sm:text-base"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </form>
               )}
             </div>
           </div>

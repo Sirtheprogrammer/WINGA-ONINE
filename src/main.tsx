@@ -1,4 +1,4 @@
-import { StrictMode, useEffect } from 'react';
+import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
@@ -11,29 +11,63 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 import { firebaseLogger } from './services/logger';
+import { navigateTo, navigateToAdmin, navigateToHome } from './utils/navigation';
 
 // AdminRedirect is now handled in Router component
 
 function Router() {
   const { loading, user, isAdmin } = useAuth();
-  const path = window.location.pathname;
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  
+  // Listen for navigation events (popstate for browser back/forward, and our custom navigation)
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setCurrentPath(window.location.pathname);
+    };
+    
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('locationchange', handleLocationChange);
+    
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('locationchange', handleLocationChange);
+    };
+  }, []);
+  
+  // Handle redirects based on auth state
+  useEffect(() => {
+    if (loading) return;
+    
+    const path = window.location.pathname;
+    
+    // Redirect non-admin users away from admin page
+    if (path.startsWith('/admin')) {
+      if (!user || !isAdmin) {
+        navigateToHome();
+        setCurrentPath('/');
+        return;
+      }
+    }
+    
+    // Auto-redirect admin users from home page to admin panel
+    if ((path === '/' || path === '') && user && isAdmin) {
+      navigateToAdmin();
+      setCurrentPath('/admin');
+      return;
+    }
+  }, [loading, user, isAdmin]);
   
   // Show loading screen during initial auth check
   if (loading) {
     return <LoadingScreen message="Loading..." />;
   }
   
+  const path = currentPath;
+  
   // Handle admin routes with proper checks
   if (path.startsWith('/admin')) {
-    // If not logged in or not admin, show loading then redirect
-    if (!user) {
-      return <LoadingScreen message="Checking access..." />;
-    }
-    if (!isAdmin) {
-      // Redirect non-admin users away from admin page
-      if (typeof window !== 'undefined') {
-        window.location.href = '/';
-      }
+    // If not logged in or not admin, show loading (redirect handled in useEffect)
+    if (!user || !isAdmin) {
       return <LoadingScreen message="Redirecting..." />;
     }
     return <AdminPanel />;
@@ -41,9 +75,6 @@ function Router() {
   
   // Auto-redirect admin users from home page to admin panel
   if ((path === '/' || path === '') && user && isAdmin) {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/admin';
-    }
     return <LoadingScreen message="Redirecting to admin panel..." />;
   }
   

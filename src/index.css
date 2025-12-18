@@ -157,6 +157,36 @@ button:not(:disabled):active {
   animation: slide-in-right 0.3s ease-out;
 }
 
+/* Snow animation */
+@keyframes snow {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.animate-snow {
+  animation: snow linear infinite;
+}
+
+/* Shimmer animation for special offers */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s infinite;
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   * {

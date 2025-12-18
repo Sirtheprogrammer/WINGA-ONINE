@@ -57,7 +57,7 @@ if (typeof window !== 'undefined') {
       firebaseLoggerUtil.error('PERSISTENCE', 'Failed to set auth persistence', error, {
         persistenceType: 'browserLocalPersistence'
       });
-    });
+  });
 }
 
 

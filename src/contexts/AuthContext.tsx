@@ -199,7 +199,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
       throw new Error(errorMessage);
     } finally {
-      setLoading(false);
+    setLoading(false);
     }
   };
 
@@ -216,7 +216,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Update display name
       try {
-        await updateProfile(userCredential.user, { displayName: name });
+      await updateProfile(userCredential.user, { displayName: name });
         authLogger.info('SIGNUP', 'User profile updated with display name', {
           uid: userCredential.user.uid
         });
@@ -229,13 +229,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Create user document in Firestore
       try {
-        await setDoc(doc(db, 'users', userCredential.user.uid), {
-          name,
-          email,
-          createdAt: new Date().toISOString(),
-          avatar: null,
-          role: 'user' // Default role for new users
-        });
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+      name,
+      email,
+        createdAt: new Date().toISOString(),
+        avatar: null,
+        role: 'user' // Default role for new users
+      });
         authLogger.info('SIGNUP', 'User document created in Firestore', {
           uid: userCredential.user.uid
         });
@@ -267,7 +267,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
       throw new Error(errorMessage);
     } finally {
-      setLoading(false);
+    setLoading(false);
     }
   };
 
@@ -282,7 +282,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       await signOut(auth);
-      setUser(null);
+    setUser(null);
       
       authLogger.info('LOGOUT', 'Logout successful', {
         uid: userId
