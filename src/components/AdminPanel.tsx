@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Package, Users, ShoppingBag, Plus, Edit2, Trash2, X, Save, Search, Filter, Tag, LogOut } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Package, Users, ShoppingBag, Plus, Edit2, Trash2, X, Save, Search, Filter, Tag, LogOut, Upload, Loader2 } from 'lucide-react';
 import { Product, Category } from '../types';
 import { Order } from '../services/orders';
 import { User } from '../types';
@@ -9,6 +9,7 @@ import { fetchAllOrders, updateOrderStatus, fetchAllUsers, updateUser, deleteUse
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { LoadingScreen } from './LoadingScreen';
+import { uploadImageToImgBB, uploadMultipleImagesToImgBB, validateImageFile } from '../services/imgbb';
 import * as Icons from 'lucide-react';
 
 type Tab = 'products' | 'orders' | 'users' | 'categories';
@@ -29,6 +30,10 @@ export const AdminPanel: React.FC = () => {
   const [editingProductId, setEditingProductId] = useState<string>('');
   const [showProductForm, setShowProductForm] = useState(false);
   const [productSearch, setProductSearch] = useState('');
+  const [uploadingMainImage, setUploadingMainImage] = useState(false);
+  const [uploadingAdditionalImages, setUploadingAdditionalImages] = useState(false);
+  const mainImageInputRef = useRef<HTMLInputElement>(null);
+  const additionalImagesInputRef = useRef<HTMLInputElement>(null);
 
   // Orders state
   const [orders, setOrders] = useState<Order[]>([]);
@@ -192,6 +197,58 @@ export const AdminPanel: React.FC = () => {
     });
     setEditingProductId('');
     setShowProductForm(false);
+    setUploadingMainImage(false);
+    setUploadingAdditionalImages(false);
+    if (mainImageInputRef.current) mainImageInputRef.current.value = '';
+    if (additionalImagesInputRef.current) additionalImagesInputRef.current.value = '';
+  };
+
+  const handleMainImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      showToast(validation.error || 'Invalid image file', 'error');
+      return;
+    }
+
+    setUploadingMainImage(true);
+    try {
+      const imageUrl = await uploadImageToImgBB(file);
+      setProductForm(prev => ({ ...prev, image: imageUrl }));
+      showToast('Main image uploaded successfully', 'success');
+    } catch (error: any) {
+      showToast(error.message || 'Failed to upload image', 'error');
+    } finally {
+      setUploadingMainImage(false);
+    }
+  };
+
+  const handleAdditionalImagesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Validate all files
+    for (const file of files) {
+      const validation = validateImageFile(file);
+      if (!validation.isValid) {
+        showToast(validation.error || `Invalid file: ${file.name}`, 'error');
+        return;
+      }
+    }
+
+    setUploadingAdditionalImages(true);
+    try {
+      const imageUrls = await uploadMultipleImagesToImgBB(files);
+      setProductForm(prev => ({ ...prev, images: [...prev.images, ...imageUrls] }));
+      showToast(`${imageUrls.length} image(s) uploaded successfully`, 'success');
+    } catch (error: any) {
+      showToast(error.message || 'Failed to upload images', 'error');
+    } finally {
+      setUploadingAdditionalImages(false);
+      if (additionalImagesInputRef.current) additionalImagesInputRef.current.value = '';
+    }
   };
 
   const handleProductSubmit = async (e: React.FormEvent) => {
@@ -204,7 +261,7 @@ export const AdminPanel: React.FC = () => {
     }
 
     if (!productForm.image || !productForm.image.trim()) {
-      showToast('Please provide a main image URL', 'error');
+      showToast('Please upload a main image', 'error');
       return;
     }
 
@@ -669,17 +726,40 @@ export const AdminPanel: React.FC = () => {
                         <label htmlFor="inStock" className="ml-2 text-sm font-medium text-gray-700">In Stock</label>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Main Image URL *</label>
-                        <input
-                          type="url"
-                          required
-                          value={productForm.image}
-                          onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
-                          placeholder="https://example.com/image.jpg"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Main Image *</label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            ref={mainImageInputRef}
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                            onChange={handleMainImageUpload}
+                            disabled={uploadingMainImage}
+                            className="hidden"
+                            id="main-image-upload"
+                          />
+                          <label
+                            htmlFor="main-image-upload"
+                            className={`flex-1 flex items-center justify-center px-4 py-2 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                              uploadingMainImage
+                                ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
+                                : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                            }`}
+                          >
+                            {uploadingMainImage ? (
+                              <>
+                                <Loader2 className="h-5 w-5 animate-spin text-blue-600 mr-2" />
+                                <span className="text-sm text-gray-600">Uploading...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="h-5 w-5 text-gray-400 mr-2" />
+                                <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
+                              </>
+                            )}
+                          </label>
+                        </div>
                         {productForm.image && (
-                          <div className="mt-2">
+                          <div className="mt-2 relative">
                             <img
                               src={productForm.image}
                               alt="Preview"
@@ -688,19 +768,55 @@ export const AdminPanel: React.FC = () => {
                                 (e.target as HTMLImageElement).style.display = 'none';
                               }}
                             />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setProductForm(prev => ({ ...prev, image: '' }));
+                                if (mainImageInputRef.current) mainImageInputRef.current.value = '';
+                              }}
+                              className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
                           </div>
                         )}
+                        <p className="mt-1 text-xs text-gray-500">PNG, JPG, GIF, WebP up to 32MB</p>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Additional Images (comma separated URLs)</label>
-                      <input
-                        type="text"
-                        value={productForm.images.join(', ')}
-                        onChange={(e) => setProductForm({ ...productForm, images: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                        placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Additional Images</label>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <input
+                          ref={additionalImagesInputRef}
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                          onChange={handleAdditionalImagesUpload}
+                          disabled={uploadingAdditionalImages}
+                          multiple
+                          className="hidden"
+                          id="additional-images-upload"
+                        />
+                        <label
+                          htmlFor="additional-images-upload"
+                          className={`flex-1 flex items-center justify-center px-4 py-2 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                            uploadingAdditionalImages
+                              ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
+                              : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                          }`}
+                        >
+                          {uploadingAdditionalImages ? (
+                            <>
+                              <Loader2 className="h-5 w-5 animate-spin text-blue-600 mr-2" />
+                              <span className="text-sm text-gray-600">Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-5 w-5 text-gray-400 mr-2" />
+                              <span className="text-sm text-gray-600">Upload multiple images</span>
+                            </>
+                          )}
+                        </label>
+                      </div>
                       {productForm.images.length > 0 && (
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mt-2">
                           {productForm.images.map((url, index) => (
@@ -721,7 +837,7 @@ export const AdminPanel: React.FC = () => {
                                     images: prev.images.filter((_, i) => i !== index)
                                   }));
                                 }}
-                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
                               >
                                 <X className="h-3 w-3" />
                               </button>
@@ -729,6 +845,7 @@ export const AdminPanel: React.FC = () => {
                           ))}
                         </div>
                       )}
+                      <p className="mt-1 text-xs text-gray-500">Select multiple images (PNG, JPG, GIF, WebP up to 32MB each)</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Features (comma separated)</label>

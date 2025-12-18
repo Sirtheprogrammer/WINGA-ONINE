@@ -12,8 +12,8 @@ interface SEOProps {
 }
 
 export const SEO: React.FC<SEOProps> = ({
-  title = 'Beipoa Online - Best Cheap Prices & Affordable Products Tanzania',
-  description = 'Beipoa Online offers the best cheap prices on electronics, fashion, home goods, and more. Find affordable products with fast delivery across Tanzania.',
+  title = 'BEIPOA online - Best Cheap Prices & Affordable Products Tanzania',
+  description = 'BEIPOA online offers the best cheap prices on electronics, fashion, home goods, and more. Find affordable products with fast delivery across Tanzania.',
   keywords = 'cheap prices Tanzania, affordable products Tanzania, online shopping Tanzania, best prices Tanzania',
   image = '/og-image.jpg',
   url = typeof window !== 'undefined' ? window.location.href : 'https://beipoa.online/',

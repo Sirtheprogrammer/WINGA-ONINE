@@ -50,8 +50,8 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <SEO
-        title="Beipoa Online - Best Cheap Prices & Affordable Products Tanzania"
-        description="Beipoa Online offers the best cheap prices on electronics, fashion, home goods, and more. Find affordable products with fast delivery across Tanzania. Compare prices and save money today!"
+        title="BEIPOA online - Best Cheap Prices & Affordable Products Tanzania"
+        description="BEIPOA online offers the best cheap prices on electronics, fashion, home goods, and more. Find affordable products with fast delivery across Tanzania. Compare prices and save money today!"
         keywords="cheap prices Tanzania, affordable products Tanzania, online shopping Tanzania, best prices Tanzania, discount products Tanzania, cheap electronics Tanzania, affordable fashion Tanzania, online store Tanzania, shopping Tanzania, deals Tanzania"
         url={typeof window !== 'undefined' ? window.location.href : 'https://beipoa.online/'}
       />
