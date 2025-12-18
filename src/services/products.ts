@@ -120,7 +120,17 @@ export async function createProduct(product: Omit<Product, 'id'>): Promise<strin
     
     productsLogger.info('CREATE_PRODUCT', 'Product created successfully', {
       productId: ref.id,
-      name: product.name
+      name: product.name,
+      price: product.price,
+      category: product.category,
+      hasImage: !!product.image,
+      inStock: product.inStock
+    });
+    
+    // Log the created data structure for debugging
+    productsLogger.debug('CREATE_PRODUCT', 'Product data structure', {
+      productId: ref.id,
+      data: productData
     });
     
     return ref.id;
@@ -167,7 +177,14 @@ export async function updateProduct(productId: string, updates: Partial<Omit<Pro
     
     productsLogger.info('UPDATE_PRODUCT', 'Product updated successfully', {
       productId,
-      updatedFields: Object.keys(updateData)
+      updatedFields: Object.keys(updateData),
+      updateData: updateData
+    });
+    
+    // Log the updated data structure for debugging
+    productsLogger.debug('UPDATE_PRODUCT', 'Product update data structure', {
+      productId,
+      data: updateData
     });
   } catch (error: any) {
     const errorMessage = error.message || 'Failed to update product. Please check your permissions and try again.';

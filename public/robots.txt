@@ -1,0 +1,15 @@
+# Robots.txt for Beipoa Online
+User-agent: *
+Allow: /
+
+# Disallow admin and private routes
+Disallow: /admin
+Disallow: /checkout
+Disallow: /orders
+
+# Sitemap location
+Sitemap: https://beipoa.online/sitemap.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1
+

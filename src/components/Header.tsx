@@ -1,34 +1,43 @@
 import React, { useState } from 'react';
-import { Search, ShoppingCart, User, Heart, Menu, X, Package, LogOut } from 'lucide-react';
+import { ShoppingCart, User, Heart, Menu, X, Package, LogOut } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import { SearchAutocomplete } from './SearchAutocomplete';
+import { Product } from '../types';
 
 interface HeaderProps {
   onSearchChange: (query: string) => void;
   onCartClick: () => void;
   onAuthClick: () => void;
   onWishlistClick: () => void;
+  products?: Product[]; // Products for autocomplete
+  onProductClick?: (product: Product) => void; // Handler for product selection
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
   onSearchChange, 
   onCartClick, 
   onAuthClick,
-  onWishlistClick 
+  onWishlistClick,
+  products = [],
+  onProductClick
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { totalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
   const { user, logout } = useAuth();
   const { showToast } = useToast();
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchQuery(query);
+  const handleSearchChange = (query: string) => {
     onSearchChange(query);
+  };
+
+  const handleProductSelect = (product: Product) => {
+    if (onProductClick) {
+      onProductClick(product);
+    }
   };
 
   const handleAuthAction = () => {
@@ -59,40 +68,35 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
-          <div className="flex items-center">
-            <div className="text-2xl font-bold text-blue-600">ShopHub</div>
+          <div className="flex items-center flex-shrink-0">
+            <div className="text-xl sm:text-2xl font-bold text-blue-600">ShopHub</div>
           </div>
 
           {/* Search Bar - Hidden on mobile */}
-          <div className="hidden md:flex flex-1 max-w-lg mx-8">
-            <div className="relative w-full">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                placeholder="Search products..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-              />
-            </div>
+          <div className="hidden md:flex flex-1 max-w-lg mx-4 lg:mx-8">
+            <SearchAutocomplete
+              products={products}
+              onSearchChange={handleSearchChange}
+              onProductSelect={handleProductSelect}
+              placeholder="Search products..."
+              className="w-full"
+            />
           </div>
 
           {/* Mobile Cart Icon - Visible on mobile */}
-          <div className="md:hidden flex items-center space-x-2">
+          <div className="md:hidden flex items-center space-x-1 sm:space-x-2">
             <button
               onClick={onCartClick}
-              className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+              className="relative p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
               title="Shopping Cart"
             >
-              <ShoppingCart className="h-6 w-6" />
+              <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
-                  {totalItems}
+                <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-blue-600 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center font-semibold text-[10px] sm:text-xs">
+                  {totalItems > 99 ? '99+' : totalItems}
                 </span>
               )}
             </button>
@@ -137,31 +141,31 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             {user ? (
-              <div className="flex items-center space-x-2">
-                <div className="flex items-center space-x-2 px-2">
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <div className="flex items-center space-x-1 sm:space-x-2 px-1 sm:px-2">
                   {user.avatar ? (
-                    <img src={user.avatar} alt={user.name} className="h-8 w-8 rounded-full" />
+                    <img src={user.avatar} alt={user.name} className="h-7 w-7 sm:h-8 sm:w-8 rounded-full" />
                   ) : (
-                    <User className="h-6 w-6 text-gray-600" />
+                    <User className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600" />
                   )}
-                  <span className="text-sm font-medium text-gray-700">{user.name}</span>
+                  <span className="text-xs sm:text-sm font-medium text-gray-700 hidden lg:inline truncate max-w-[100px]">{user.name}</span>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                  className="flex items-center space-x-1 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
                   title="Logout"
                 >
-                  <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
+                  <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Logout</span>
                 </button>
               </div>
             ) : (
               <button
                 onClick={handleAuthAction}
-                className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
               >
-                <User className="h-5 w-5" />
-                <span>Login</span>
+                <User className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Login</span>
               </button>
             )}
           </div>
@@ -178,19 +182,14 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Mobile Search Bar */}
-        <div className="md:hidden pb-3">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              placeholder="Search products..."
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
+        <div className="md:hidden pb-2 sm:pb-3">
+          <SearchAutocomplete
+            products={products}
+            onSearchChange={handleSearchChange}
+            onProductSelect={handleProductSelect}
+            placeholder="Search products..."
+            className="w-full"
+          />
         </div>
       </div>
 

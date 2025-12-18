@@ -449,29 +449,31 @@ export const AdminPanel: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
-            <div className="flex items-center space-x-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Admin Panel</h1>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
               {user && (
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <span>{user.name}</span>
+                <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+                  <span className="hidden sm:inline">{user.name}</span>
+                  <span className="sm:hidden truncate max-w-[100px]">{user.name}</span>
                   {user.avatar && (
-                    <img src={user.avatar} alt={user.name} className="h-8 w-8 rounded-full" />
+                    <img src={user.avatar} alt={user.name} className="h-7 w-7 sm:h-8 sm:w-8 rounded-full" />
                   )}
                 </div>
               )}
               <button
                 onClick={() => window.location.href = '/'}
-                className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors whitespace-nowrap"
               >
-                ← Back to Shop
+                <span className="hidden sm:inline">← Back to Shop</span>
+                <span className="sm:hidden">← Back</span>
               </button>
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-2 px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>Logout</span>
               </button>
             </div>
@@ -481,51 +483,54 @@ export const AdminPanel: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm border mb-6">
-          <div className="flex border-b">
+        <div className="bg-white rounded-lg shadow-sm border mb-4 sm:mb-6">
+          <div className="flex overflow-x-auto scrollbar-hide border-b">
             <button
               onClick={() => setActiveTab('products')}
-              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
+              className={`flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 text-center font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'products'
                   ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
-              <Package className="h-5 w-5 inline mr-2" />
-              Products
+              <Package className="h-4 w-4 sm:h-5 sm:w-5 inline mr-1 sm:mr-2" />
+              <span className="text-sm sm:text-base">Products</span>
             </button>
             <button
               onClick={() => setActiveTab('orders')}
-              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
+              className={`flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 text-center font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'orders'
                   ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
-              <ShoppingBag className="h-5 w-5 inline mr-2" />
-              Orders ({orders.length})
+              <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5 inline mr-1 sm:mr-2" />
+              <span className="text-sm sm:text-base">Orders</span>
+              <span className="ml-1 text-xs sm:text-sm">({orders.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('users')}
-              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
+              className={`flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 text-center font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'users'
                   ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
-              <Users className="h-5 w-5 inline mr-2" />
-              Users ({users.length})
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 inline mr-1 sm:mr-2" />
+              <span className="text-sm sm:text-base">Users</span>
+              <span className="ml-1 text-xs sm:text-sm">({users.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('categories')}
-              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
+              className={`flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 text-center font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'categories'
                   ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
-              <Tag className="h-5 w-5 inline mr-2" />
-              Categories ({categories.length})
+              <Tag className="h-4 w-4 sm:h-5 sm:w-5 inline mr-1 sm:mr-2" />
+              <span className="text-sm sm:text-base">Categories</span>
+              <span className="ml-1 text-xs sm:text-sm">({categories.length})</span>
             </button>
           </div>
         </div>
@@ -534,16 +539,16 @@ export const AdminPanel: React.FC = () => {
         {activeTab === 'products' && (
           <div className="space-y-6">
             {/* Products Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1 max-w-md">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+              <div className="flex-1 w-full sm:max-w-md">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search products..."
                     value={productSearch}
                     onChange={(e) => setProductSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -552,17 +557,17 @@ export const AdminPanel: React.FC = () => {
                   resetProductForm();
                   setShowProductForm(true);
                 }}
-                className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base whitespace-nowrap"
               >
-                <Plus className="h-5 w-5" />
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span>Add Product</span>
               </button>
             </div>
 
             {/* Product Form Modal */}
             {showProductForm && (
-              <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+              <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4">
+                <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
                   <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
                     <h2 className="text-xl font-semibold">{editingProductId ? 'Edit Product' : 'Add New Product'}</h2>
                     <button onClick={resetProductForm} className="p-2 hover:bg-gray-100 rounded-lg">
@@ -697,13 +702,13 @@ export const AdminPanel: React.FC = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       {productForm.images.length > 0 && (
-                        <div className="grid grid-cols-4 gap-2 mt-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mt-2">
                           {productForm.images.map((url, index) => (
                             <div key={index} className="relative">
                               <img
                                 src={url}
                                 alt={`Additional ${index + 1}`}
-                                className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                                className="w-full h-20 sm:h-24 object-cover rounded-lg border border-gray-200"
                                 onError={(e) => {
                                   (e.target as HTMLImageElement).style.display = 'none';
                                 }}
@@ -773,32 +778,32 @@ export const AdminPanel: React.FC = () => {
               ) : (
                 <div className="divide-y">
                   {filteredProducts.map((product) => (
-                    <div key={product.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
-                      <div className="flex items-center space-x-4 flex-1">
-                        <img src={product.image} alt={product.name} className="w-16 h-16 object-cover rounded-lg" />
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">{product.name}</h3>
-                          <p className="text-sm text-gray-600">{product.brand} • {product.category}</p>
-                          <p className="text-sm font-medium text-gray-900 mt-1">{formatTZS(product.price)}</p>
+                    <div key={product.id} className="p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 hover:bg-gray-50">
+                      <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 flex-1 w-full sm:w-auto">
+                        <img src={product.image} alt={product.name} className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-sm sm:text-base text-gray-900 truncate">{product.name}</h3>
+                          <p className="text-xs sm:text-sm text-gray-600 truncate">{product.brand} • {product.category}</p>
+                          <p className="text-xs sm:text-sm font-medium text-gray-900 mt-1">{formatTZS(product.price)}</p>
                         </div>
-                        <div className={`px-3 py-1 rounded-full text-xs font-semibold ${product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          {product.inStock ? 'In Stock' : 'Out of Stock'}
+                        <div className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {product.inStock ? 'In Stock' : 'Out'}
                         </div>
                       </div>
-                      <div className="flex space-x-2 ml-4">
+                      <div className="flex space-x-2 ml-auto sm:ml-4">
                         <button
                           onClick={() => handleProductEdit(product)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Edit"
                         >
-                          <Edit2 className="h-5 w-5" />
+                          <Edit2 className="h-4 w-4 sm:h-5 sm:w-5" />
                         </button>
                         <button
                           onClick={() => handleProductDelete(product.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           title="Delete"
                         >
-                          <Trash2 className="h-5 w-5" />
+                          <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                         </button>
                       </div>
                     </div>
@@ -813,12 +818,12 @@ export const AdminPanel: React.FC = () => {
         {activeTab === 'orders' && (
           <div className="space-y-6">
             {/* Orders Filter */}
-            <div className="flex items-center space-x-4">
-              <Filter className="h-5 w-5 text-gray-400" />
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />
               <select
                 value={orderFilter}
                 onChange={(e) => setOrderFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Orders</option>
                 <option value="pending">Pending</option>
@@ -838,18 +843,18 @@ export const AdminPanel: React.FC = () => {
               ) : (
                 <div className="divide-y">
                   {filteredOrders.map((order) => (
-                    <div key={order.id} className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <h3 className="font-semibold text-gray-900">Order #{order.id?.substring(0, 8).toUpperCase()}</h3>
-                          <p className="text-sm text-gray-600">{formatDate(order.createdAt)}</p>
-                          <p className="text-sm font-medium text-gray-900 mt-1">{formatTZS(order.totalAmount)}</p>
+                    <div key={order.id} className="p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-sm sm:text-base text-gray-900">Order #{order.id?.substring(0, 8).toUpperCase()}</h3>
+                          <p className="text-xs sm:text-sm text-gray-600">{formatDate(order.createdAt)}</p>
+                          <p className="text-xs sm:text-sm font-medium text-gray-900 mt-1">{formatTZS(order.totalAmount)}</p>
                         </div>
-                        <div className="flex items-center space-x-3">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
                           <select
                             value={order.orderStatus}
                             onChange={(e) => handleOrderStatusUpdate(order.id!, e.target.value as Order['orderStatus'])}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
                             <option value="pending">Pending</option>
                             <option value="processing">Processing</option>
@@ -859,7 +864,7 @@ export const AdminPanel: React.FC = () => {
                           </select>
                           <button
                             onClick={() => setSelectedOrder(selectedOrder?.id === order.id ? null : order)}
-                            className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                            className="px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 whitespace-nowrap"
                           >
                             {selectedOrder?.id === order.id ? 'Hide' : 'View'} Details
                           </button>
@@ -867,38 +872,38 @@ export const AdminPanel: React.FC = () => {
                       </div>
                       
                       {selectedOrder?.id === order.id && (
-                        <div className="mt-4 pt-4 border-t space-y-4 bg-gray-50 p-4 rounded-lg">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="mt-4 pt-4 border-t space-y-4 bg-gray-50 p-3 sm:p-4 rounded-lg">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             <div>
-                              <h4 className="font-semibold text-sm text-gray-700 mb-2">Customer</h4>
-                              <p className="text-sm text-gray-600">{order.deliveryInfo.fullName}</p>
-                              <p className="text-sm text-gray-600">{order.deliveryInfo.email}</p>
-                              <p className="text-sm text-gray-600">{order.deliveryInfo.phone}</p>
+                              <h4 className="font-semibold text-xs sm:text-sm text-gray-700 mb-2">Customer</h4>
+                              <p className="text-xs sm:text-sm text-gray-600 break-words">{order.deliveryInfo.fullName}</p>
+                              <p className="text-xs sm:text-sm text-gray-600 break-words">{order.deliveryInfo.email}</p>
+                              <p className="text-xs sm:text-sm text-gray-600">{order.deliveryInfo.phone}</p>
                             </div>
                             <div>
-                              <h4 className="font-semibold text-sm text-gray-700 mb-2">Delivery Address</h4>
-                              <p className="text-sm text-gray-600">{order.deliveryInfo.address}</p>
-                              <p className="text-sm text-gray-600">{order.deliveryInfo.city}</p>
+                              <h4 className="font-semibold text-xs sm:text-sm text-gray-700 mb-2">Delivery Address</h4>
+                              <p className="text-xs sm:text-sm text-gray-600 break-words">{order.deliveryInfo.address}</p>
+                              <p className="text-xs sm:text-sm text-gray-600">{order.deliveryInfo.city}</p>
                             </div>
                           </div>
                           <div>
-                            <h4 className="font-semibold text-sm text-gray-700 mb-2">Items ({order.items.length})</h4>
+                            <h4 className="font-semibold text-xs sm:text-sm text-gray-700 mb-2">Items ({order.items.length})</h4>
                             <div className="space-y-2">
                               {order.items.map((item, idx) => (
-                                <div key={idx} className="flex items-center space-x-3 text-sm">
-                                  <img src={item.product.image} alt={item.product.name} className="w-12 h-12 object-cover rounded" />
-                                  <div className="flex-1">
-                                    <p className="font-medium">{item.product.name}</p>
+                                <div key={idx} className="flex items-start sm:items-center space-x-2 sm:space-x-3 text-xs sm:text-sm">
+                                  <img src={item.product.image} alt={item.product.name} className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium truncate">{item.product.name}</p>
                                     <p className="text-gray-600">Qty: {item.quantity} × {formatTZS(item.product.price)}</p>
                                   </div>
-                                  <p className="font-semibold">{formatTZS(item.product.price * item.quantity)}</p>
+                                  <p className="font-semibold flex-shrink-0">{formatTZS(item.product.price * item.quantity)}</p>
                                 </div>
                               ))}
                             </div>
                           </div>
-                          <div className="flex justify-between items-center pt-2 border-t">
-                            <span className="font-semibold">Payment:</span>
-                            <span className="text-sm capitalize">{order.paymentMethod.replace('-', ' ')} • {order.paymentStatus}</span>
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 pt-2 border-t">
+                            <span className="font-semibold text-xs sm:text-sm">Payment:</span>
+                            <span className="text-xs sm:text-sm capitalize">{order.paymentMethod.replace('-', ' ')} • {order.paymentStatus}</span>
                           </div>
                         </div>
                       )}
@@ -914,15 +919,15 @@ export const AdminPanel: React.FC = () => {
         {activeTab === 'users' && (
           <div className="space-y-6">
             {/* Users Search */}
-            <div className="max-w-md">
+            <div className="w-full sm:max-w-md">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search users..."
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -936,10 +941,10 @@ export const AdminPanel: React.FC = () => {
               ) : (
                 <div className="divide-y">
                   {filteredUsers.map((userItem) => (
-                    <div key={userItem.id} className="p-4">
+                    <div key={userItem.id} className="p-3 sm:p-4">
                       {editingUserId === userItem.id ? (
-                        <div className="flex items-center space-x-4">
-                          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                               <input
@@ -970,13 +975,13 @@ export const AdminPanel: React.FC = () => {
                               </select>
                             </div>
                           </div>
-                          <div className="flex space-x-2">
+                          <div className="flex space-x-2 sm:flex-shrink-0">
                             <button
                               onClick={handleUserSave}
                               className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
                               title="Save"
                             >
-                              <Save className="h-5 w-5" />
+                              <Save className="h-4 w-4 sm:h-5 sm:w-5" />
                             </button>
                             <button
                               onClick={() => {
@@ -986,37 +991,37 @@ export const AdminPanel: React.FC = () => {
                               className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg"
                               title="Cancel"
                             >
-                              <X className="h-5 w-5" />
+                              <X className="h-4 w-4 sm:h-5 sm:w-5" />
                             </button>
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+                          <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
                             {userItem.avatar ? (
-                              <img src={userItem.avatar} alt={userItem.name} className="w-12 h-12 rounded-full" />
+                              <img src={userItem.avatar} alt={userItem.name} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0" />
                             ) : (
-                              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                                <Users className="h-6 w-6 text-gray-400" />
+                              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
                               </div>
                             )}
-                            <div>
-                              <div className="flex items-center space-x-2">
-                                <h3 className="font-semibold text-gray-900">{userItem.name}</h3>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                                <h3 className="font-semibold text-sm sm:text-base text-gray-900 truncate">{userItem.name}</h3>
                                 {userItem.role === 'admin' && (
-                                  <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs font-semibold rounded-full">
+                                  <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs font-semibold rounded-full flex-shrink-0">
                                     Admin
                                   </span>
                                 )}
                               </div>
-                              <p className="text-sm text-gray-600">{userItem.email}</p>
+                              <p className="text-xs sm:text-sm text-gray-600 truncate">{userItem.email}</p>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto">
                             <select
                               value={userItem.role || 'user'}
                               onChange={(e) => handleRoleChange(userItem.id, e.target.value as 'user' | 'admin')}
-                              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                               <option value="user">User</option>
                               <option value="admin">Admin</option>
@@ -1026,14 +1031,14 @@ export const AdminPanel: React.FC = () => {
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                               title="Edit"
                             >
-                              <Edit2 className="h-5 w-5" />
+                              <Edit2 className="h-4 w-4 sm:h-5 sm:w-5" />
                             </button>
                             <button
                               onClick={() => handleUserDelete(userItem.id)}
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete"
                             >
-                              <Trash2 className="h-5 w-5" />
+                              <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                             </button>
                           </div>
                         </div>
@@ -1050,24 +1055,24 @@ export const AdminPanel: React.FC = () => {
         {activeTab === 'categories' && (
           <div className="space-y-6">
             {/* Categories Header */}
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Manage Categories</h2>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0">
+              <h2 className="text-lg sm:text-xl font-semibold">Manage Categories</h2>
               <button
                 onClick={() => {
                   resetCategoryForm();
                   setShowCategoryForm(true);
                 }}
-                className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base whitespace-nowrap"
               >
-                <Plus className="h-5 w-5" />
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span>Add Category</span>
               </button>
             </div>
 
             {/* Category Form Modal */}
             {showCategoryForm && (
-              <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+              <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4">
+                <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
                   <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
                     <h2 className="text-xl font-semibold">{editingCategoryId ? 'Edit Category' : 'Add New Category'}</h2>
                     <button onClick={resetCategoryForm} className="p-2 hover:bg-gray-100 rounded-lg">
@@ -1156,32 +1161,32 @@ export const AdminPanel: React.FC = () => {
                   {categories.map((category) => {
                     const IconComponent = (Icons as any)[category.icon] || Icons.Package;
                     return (
-                      <div key={category.id} className="p-4 flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center">
-                            <IconComponent className="h-6 w-6 text-blue-600" />
+                      <div key={category.id} className="p-3 sm:p-4 flex items-center justify-between gap-3">
+                        <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                            <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                           </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{category.name}</h3>
-                            <p className="text-sm text-gray-600">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-semibold text-sm sm:text-base text-gray-900 truncate">{category.name}</h3>
+                            <p className="text-xs sm:text-sm text-gray-600">
                               {category.count} product{category.count !== 1 ? 's' : ''}
                             </p>
                           </div>
                         </div>
-                        <div className="flex space-x-2">
+                        <div className="flex space-x-2 flex-shrink-0">
                           <button
                             onClick={() => handleCategoryEdit(category)}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="Edit"
                           >
-                            <Edit2 className="h-5 w-5" />
+                            <Edit2 className="h-4 w-4 sm:h-5 sm:w-5" />
                           </button>
                           <button
                             onClick={() => handleCategoryDelete(category.id)}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete"
                           >
-                            <Trash2 className="h-5 w-5" />
+                            <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                           </button>
                         </div>
                       </div>

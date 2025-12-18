@@ -105,6 +105,16 @@ button:not(:disabled):active {
   }
 }
 
+/* Scrollbar hide utility for mobile tabs */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
 /* Mobile optimizations */
 @media (max-width: 640px) {
   .container {

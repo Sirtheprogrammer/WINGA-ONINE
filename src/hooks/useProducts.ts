@@ -9,7 +9,7 @@ export const useProducts = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<FilterOptions>({
     category: '',
-    priceRange: [0, 9999],
+    priceRange: [0, 999999999], // Very high max to include all products
     brand: [],
     rating: 0,
     inStock: false
@@ -24,37 +24,9 @@ export const useProducts = () => {
   useEffect(() => {
     let mounted = true;
     let unsubscribe: (() => void) | null = null;
+    let isFirstSnapshot = true;
 
-    // Initial load
-    const load = async () => {
-      setLoading(true);
-      setError(null);
-      productsLogger.info('USE_PRODUCTS', 'Initial product load started');
-      
-      try {
-        const remote = await fetchProductsFromFirestore();
-        if (mounted) {
-          setAllProducts(remote);
-          setLoading(false);
-          productsLogger.info('USE_PRODUCTS', 'Initial product load completed', {
-            productCount: remote.length
-          });
-        }
-      } catch (e: any) {
-        const errorMessage = e.message || 'Failed to load products';
-        productsLogger.error('USE_PRODUCTS', 'Initial product load failed', e, {
-          errorMessage
-        });
-        
-        if (mounted) {
-          setError(errorMessage);
-          setAllProducts([]);
-          setLoading(false);
-        }
-      }
-    };
-
-    // Set up real-time listener for product updates
+    // Set up real-time listener for product updates (primary source of truth)
     try {
       productsLogger.info('USE_PRODUCTS', 'Setting up real-time products listener');
       
@@ -63,17 +35,32 @@ export const useProducts = () => {
       
       unsubscribe = onSnapshot(
         productsCollection,
+        {
+          // Include metadata changes to detect when writes are committed
+          includeMetadataChanges: true
+        },
         (snapshot) => {
           if (!mounted) {
             productsLogger.debug('USE_PRODUCTS', 'Component unmounted, skipping snapshot update');
             return;
           }
           
-          productsLogger.debug('USE_PRODUCTS', 'Real-time snapshot received', {
+          // Log snapshot details
+          const isFromCache = snapshot.metadata.fromCache;
+          const hasPendingWrites = snapshot.metadata.hasPendingWrites;
+          
+          productsLogger.info('USE_PRODUCTS', 'Real-time snapshot received', {
             documentCount: snapshot.docs.length,
-            hasPendingWrites: snapshot.metadata.hasPendingWrites,
-            fromCache: snapshot.metadata.fromCache
+            hasPendingWrites,
+            fromCache: isFromCache,
+            isFirstSnapshot
           });
+          
+          // If this is the first snapshot and it's from cache, we might want to wait for server data
+          // But for now, we'll use whatever we get
+          if (isFirstSnapshot && isFromCache) {
+            productsLogger.debug('USE_PRODUCTS', 'First snapshot is from cache, will update when server data arrives');
+          }
           
           const products: Product[] = [];
           const parseErrors: Array<{ docId: string; error: string }> = [];
@@ -98,17 +85,19 @@ export const useProducts = () => {
                 ...(data.discount && typeof data.discount === 'object' && { discount: data.discount })
               };
               
-              if (product.name && product.price > 0 && product.image) {
+              // More lenient validation - only require name and price
+              // Image can be empty initially and added later
+              if (product.name && product.name !== 'Unnamed Product' && product.price >= 0) {
                 products.push(product);
               } else {
                 parseErrors.push({
                   docId: doc.id,
-                  error: 'Invalid product data: missing name, price, or image'
+                  error: 'Invalid product data: missing name or invalid price'
                 });
                 productsLogger.warn('USE_PRODUCTS', 'Product skipped in real-time update', {
                   docId: doc.id,
-                  hasName: !!product.name,
-                  hasPrice: product.price > 0,
+                  name: product.name,
+                  price: product.price,
                   hasImage: !!product.image
                 });
               }
@@ -119,25 +108,42 @@ export const useProducts = () => {
                 error: errorMessage
               });
               productsLogger.error('USE_PRODUCTS', `Error parsing product ${doc.id} in real-time update`, error as Error, {
-                docId: doc.id
+                docId: doc.id,
+                data: JSON.stringify(data)
               });
             }
           });
           
-          setAllProducts(products);
-          setLoading(false);
-          setError(null);
-          
-          productsLogger.info('USE_PRODUCTS', 'Real-time products update processed', {
-            productCount: products.length,
-            totalDocuments: snapshot.docs.length,
-            parseErrors: parseErrors.length
-          });
-          
-          if (parseErrors.length > 0) {
-            productsLogger.warn('USE_PRODUCTS', 'Some products failed to parse in real-time update', {
-              errors: parseErrors
+          // Update state with new products
+          if (mounted) {
+            setAllProducts(products);
+            setLoading(false);
+            setError(null);
+            
+            // Log detailed product information for debugging
+            productsLogger.info('USE_PRODUCTS', 'Real-time products update processed', {
+              productCount: products.length,
+              totalDocuments: snapshot.docs.length,
+              parseErrors: parseErrors.length,
+              isFirstSnapshot,
+              fromCache: isFromCache,
+              products: products.map(p => ({
+                id: p.id,
+                name: p.name,
+                price: p.price,
+                hasImage: !!p.image,
+                category: p.category,
+                inStock: p.inStock
+              }))
             });
+            
+            if (parseErrors.length > 0) {
+              productsLogger.warn('USE_PRODUCTS', 'Some products failed to parse in real-time update', {
+                errors: parseErrors
+              });
+            }
+            
+            isFirstSnapshot = false;
           }
         },
         (error) => {
@@ -151,9 +157,10 @@ export const useProducts = () => {
           
           if (mounted) {
             setError(errorMessage);
-            // Fallback to initial load
-            productsLogger.info('USE_PRODUCTS', 'Falling back to initial load due to snapshot error');
-            load();
+            setLoading(false);
+            // Don't fallback to load() here as it might cause conflicts
+            // The listener will retry automatically
+            productsLogger.info('USE_PRODUCTS', 'Snapshot error occurred, listener will retry automatically');
           }
         }
       );
@@ -161,9 +168,35 @@ export const useProducts = () => {
       productsLogger.info('USE_PRODUCTS', 'Real-time products listener set up successfully');
     } catch (e) {
       productsLogger.error('USE_PRODUCTS', 'Failed to set up products listener', e as Error);
-      // Fallback to initial load
-      productsLogger.info('USE_PRODUCTS', 'Falling back to initial load due to listener setup error');
-      load();
+      
+      // Fallback: try initial load if listener setup fails
+      if (mounted) {
+        setLoading(true);
+        setError(null);
+        productsLogger.info('USE_PRODUCTS', 'Falling back to initial load due to listener setup error');
+        
+        fetchProductsFromFirestore()
+          .then(remote => {
+            if (mounted) {
+              setAllProducts(remote);
+              setLoading(false);
+              productsLogger.info('USE_PRODUCTS', 'Fallback initial load completed', {
+                productCount: remote.length
+              });
+            }
+          })
+          .catch(err => {
+            if (mounted) {
+              const errorMessage = err.message || 'Failed to load products';
+              productsLogger.error('USE_PRODUCTS', 'Fallback initial load failed', err, {
+                errorMessage
+              });
+              setError(errorMessage);
+              setAllProducts([]);
+              setLoading(false);
+            }
+          });
+      }
     }
 
     return () => {
@@ -178,14 +211,36 @@ export const useProducts = () => {
 
   const filteredProducts = useMemo(() => {
     let filtered = allProducts.filter(product => {
-      // Search query - handle empty/null values
+      // Search query - improved matching
       if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const nameMatch = product.name?.toLowerCase().includes(query) || false;
-        const brandMatch = product.brand?.toLowerCase().includes(query) || false;
-        const descMatch = product.description?.toLowerCase().includes(query) || false;
+        const query = searchQuery.toLowerCase().trim();
+        const queryWords = query.split(/\s+/).filter(w => w.length > 0);
         
-        if (!nameMatch && !brandMatch && !descMatch) {
+        // Multi-field search with word matching
+        const name = (product.name || '').toLowerCase();
+        const brand = (product.brand || '').toLowerCase();
+        const description = (product.description || '').toLowerCase();
+        const category = (product.category || '').toLowerCase();
+        
+        // Check if all query words match in any field
+        let matches = false;
+        
+        // Exact phrase match (highest priority)
+        if (name.includes(query) || brand.includes(query) || description.includes(query)) {
+          matches = true;
+        }
+        // Word-by-word matching
+        else if (queryWords.length > 0) {
+          const allWordsMatch = queryWords.every(word => 
+            name.includes(word) || 
+            brand.includes(word) || 
+            description.includes(word) ||
+            category.includes(word)
+          );
+          matches = allWordsMatch;
+        }
+        
+        if (!matches) {
           return false;
         }
       }
@@ -195,9 +250,16 @@ export const useProducts = () => {
         return false;
       }
 
-      // Price range filter
-      const price = Number(product.price) || 0;
-      if (price < filters.priceRange[0] || price > filters.priceRange[1]) {
+      // Price range filter - allow price 0 and handle edge cases
+      const price = Number(product.price);
+      // Handle NaN, null, undefined as 0
+      const validPrice = isNaN(price) ? 0 : price;
+      if (validPrice < filters.priceRange[0] || validPrice > filters.priceRange[1]) {
+        productsLogger.debug('USE_PRODUCTS', 'Product filtered out by price range', {
+          productId: product.id,
+          productPrice: validPrice,
+          priceRange: filters.priceRange
+        });
         return false;
       }
 
@@ -219,6 +281,18 @@ export const useProducts = () => {
 
       return true;
     });
+    
+    // Log filtering results for debugging
+    if (allProducts.length > 0) {
+      productsLogger.debug('USE_PRODUCTS', 'Products filtering', {
+        totalProducts: allProducts.length,
+        filteredCount: filtered.length,
+        searchQuery: searchQuery || '(none)',
+        categoryFilter: filters.category || '(none)',
+        priceRange: filters.priceRange,
+        inStockFilter: filters.inStock
+      });
+    }
 
     // Sort products
     filtered.sort((a, b) => {
@@ -239,11 +313,34 @@ export const useProducts = () => {
       return sortOrder === 'asc' ? comparison : -comparison;
     });
 
+    // Log final filtered results
+    if (allProducts.length > 0) {
+      productsLogger.info('USE_PRODUCTS', 'Filtered products result', {
+        allProductsCount: allProducts.length,
+        filteredCount: filtered.length,
+        filteredProductIds: filtered.map(p => p.id),
+        allProductIds: allProducts.map(p => p.id)
+      });
+    }
+    
     return filtered;
   }, [allProducts, searchQuery, filters, sortBy, sortOrder]);
 
+  // Log whenever products change
+  useEffect(() => {
+    if (allProducts.length > 0) {
+      productsLogger.info('USE_PRODUCTS', 'Products state updated', {
+        allProductsCount: allProducts.length,
+        filteredProductsCount: filteredProducts.length,
+        loading,
+        hasError: !!error
+      });
+    }
+  }, [allProducts, filteredProducts, loading, error]);
+
   return {
     products: filteredProducts,
+    allProducts, // Return all products for category counts
     loading,
     error,
     searchQuery,

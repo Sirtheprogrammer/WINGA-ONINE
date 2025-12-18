@@ -8,6 +8,13 @@ interface ProductGridProps {
 }
 
 export const ProductGrid: React.FC<ProductGridProps> = ({ products, onProductClick }) => {
+  // Debug logging
+  console.log('[ProductGrid] Rendering products:', {
+    count: products.length,
+    productIds: products.map(p => p.id),
+    productNames: products.map(p => p.name)
+  });
+
   if (products.length === 0) {
     return (
       <div className="col-span-full flex flex-col items-center justify-center py-16">
@@ -21,7 +28,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products, onProductCli
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
       {products.map((product) => (
         <ProductCard
           key={product.id}

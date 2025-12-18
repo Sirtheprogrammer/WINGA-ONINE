@@ -18,19 +18,19 @@ export const DiscountBanner: React.FC<DiscountBannerProps> = ({
   textColor = 'text-white'
 }) => {
   return (
-    <div className={`${backgroundColor} ${textColor} py-4 px-6 rounded-lg shadow-lg mb-6`}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Zap className="h-6 w-6 animate-pulse" />
-          <div>
-            <h3 className="text-lg font-bold">{title}</h3>
-            <p className="text-sm opacity-90">{description}</p>
+    <div className={`${backgroundColor} ${textColor} py-3 sm:py-4 px-4 sm:px-6 rounded-lg shadow-lg mb-4 sm:mb-6`}>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+          <Zap className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse flex-shrink-0" />
+          <div className="min-w-0 flex-1">
+            <h3 className="text-base sm:text-lg font-bold truncate">{title}</h3>
+            <p className="text-xs sm:text-sm opacity-90 line-clamp-2">{description}</p>
           </div>
         </div>
         
-        <div className="flex items-center space-x-4">
-          <div className="text-right">
-            <div className="text-sm opacity-90 mb-1">Ends in:</div>
+        <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto justify-between sm:justify-end">
+          <div className="text-left sm:text-right">
+            <div className="text-xs sm:text-sm opacity-90 mb-1">Ends in:</div>
             <CountdownTimer 
               endDate={endDate}
               className={textColor}

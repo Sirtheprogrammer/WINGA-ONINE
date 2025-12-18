@@ -10,6 +10,7 @@ import { ProductDetail } from './components/ProductDetail';
 import { Wishlist } from './components/Wishlist';
 import { Footer } from './components/Footer';
 import { DiscountBanner } from './components/DiscountBanner';
+import { SEO } from './components/SEO';
 import { useProducts } from './hooks/useProducts';
 import { Product } from './types';
 
@@ -23,6 +24,7 @@ function AppContent() {
 
   const {
     products,
+    allProducts, // All products for category counts
     loading: productsLoading,
     searchQuery,
     setSearchQuery,
@@ -47,29 +49,38 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      <SEO
+        title="Beipoa Online - Best Cheap Prices & Affordable Products Tanzania"
+        description="Beipoa Online offers the best cheap prices on electronics, fashion, home goods, and more. Find affordable products with fast delivery across Tanzania. Compare prices and save money today!"
+        keywords="cheap prices Tanzania, affordable products Tanzania, online shopping Tanzania, best prices Tanzania, discount products Tanzania, cheap electronics Tanzania, affordable fashion Tanzania, online store Tanzania, shopping Tanzania, deals Tanzania"
+        url={typeof window !== 'undefined' ? window.location.href : 'https://beipoa.online/'}
+      />
       <Header
         onSearchChange={setSearchQuery}
         onCartClick={() => setIsCartOpen(true)}
         onAuthClick={() => setIsAuthModalOpen(true)}
         onWishlistClick={() => setIsWishlistOpen(true)}
+        products={allProducts}
+        onProductClick={handleProductClick}
       />
 
-      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <div className="flex gap-8">
+      <div className="flex-1 max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 w-full">
+        <div className="flex gap-4 lg:gap-8">
           {/* Sidebar */}
           <div className="hidden lg:block flex-shrink-0">
-            <div className="w-80">
+            <div className="w-72 xl:w-80">
               <Sidebar
                 filters={filters}
                 onFilterChange={setFilters}
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
+                products={allProducts}
               />
             </div>
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {/* Discount Banner */}
             <DiscountBanner
               title="🔥 Flash Sale - Up to 35% Off!"
@@ -78,25 +89,25 @@ function AppContent() {
             />
 
             {/* Mobile Filter Toggle and Sort */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="lg:hidden flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                className="lg:hidden flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-sm sm:text-base"
               >
-                <Filter className="h-5 w-5" />
+                <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span>Filters</span>
               </button>
 
-              <div className="flex items-center space-x-4">
-                <span className="text-gray-600">
+              <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4">
+                <span className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">
                   {products.length} product{products.length !== 1 ? 's' : ''}
                 </span>
                 
-                <div className="relative">
+                <div className="relative flex-shrink-0">
                   <select
                     value={`${sortBy}-${sortOrder}`}
                     onChange={(e) => handleSortChange(e.target.value)}
-                    className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="appearance-none bg-white border border-gray-300 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 pr-7 sm:pr-8 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="name-asc">Name: A to Z</option>
                     <option value="name-desc">Name: Z to A</option>
@@ -105,7 +116,7 @@ function AppContent() {
                     <option value="rating-desc">Rating: High to Low</option>
                     <option value="rating-asc">Rating: Low to High</option>
                   </select>
-                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-gray-400 pointer-events-none" />
                 </div>
               </div>
             </div>
@@ -114,10 +125,10 @@ function AppContent() {
             {productsLoading ? (
               <ProductGridSkeleton count={8} />
             ) : products.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16">
-                <div className="text-6xl mb-4">📦</div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">No products available</h3>
-                <p className="text-gray-500 text-center max-w-md">
+              <div className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
+                <div className="text-5xl sm:text-6xl mb-4">📦</div>
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 text-center">No products available</h3>
+                <p className="text-sm sm:text-base text-gray-500 text-center max-w-md">
                   There are no products in the catalog yet. Check back soon or contact the administrator.
                 </p>
               </div>
