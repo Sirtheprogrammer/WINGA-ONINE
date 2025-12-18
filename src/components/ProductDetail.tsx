@@ -5,6 +5,7 @@ import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { DiscountBadge } from './DiscountBadge';
 import { CountdownTimer } from './CountdownTimer';
+import { productsLogger } from '../services/logger';
 
 interface ProductDetailProps {
   product: Product | null;
@@ -62,6 +63,19 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, isOpen, o
                   src={product.images[selectedImageIndex] || product.image}
                   alt={product.name}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const imageUrl = product.images[selectedImageIndex] || product.image;
+                    productsLogger.error('RENDER_PRODUCT', 'Failed to load product detail image', new Error('Image load error'), {
+                      productId: product.id,
+                      productName: product.name,
+                      imageUrl,
+                      imageIndex: selectedImageIndex
+                    });
+                    // Fallback to main product image
+                    if (product.images[selectedImageIndex] && product.image) {
+                      (e.target as HTMLImageElement).src = product.image;
+                    }
+                  }}
                 />
               </div>
               
@@ -81,6 +95,16 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, isOpen, o
                         src={image}
                         alt={`${product.name} ${index + 1}`}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          productsLogger.error('RENDER_PRODUCT', 'Failed to load product thumbnail image', new Error('Image load error'), {
+                            productId: product.id,
+                            productName: product.name,
+                            imageUrl: image,
+                            imageIndex: index
+                          });
+                          // Hide broken thumbnail
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
                       />
                     </button>
                   ))}

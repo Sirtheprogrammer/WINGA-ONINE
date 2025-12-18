@@ -1,11 +1,20 @@
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/client';
 import { Product } from '../types';
+import { productsLogger } from './logger';
 
 export async function fetchProductsFromFirestore(): Promise<Product[]> {
+  productsLogger.info('FETCH_PRODUCTS', 'Fetching products from Firestore');
+  
   try {
     const snapshot = await getDocs(collection(db, 'products'));
+    const totalDocs = snapshot.docs.length;
+    productsLogger.info('FETCH_PRODUCTS', 'Products snapshot received', {
+      totalDocuments: totalDocs
+    });
+    
     const products: Product[] = [];
+    const parseErrors: Array<{ docId: string; error: string }> = [];
     
     snapshot.docs.forEach(doc => {
       const data = doc.data();
@@ -31,20 +40,64 @@ export async function fetchProductsFromFirestore(): Promise<Product[]> {
         // Only add products with valid data
         if (product.name && product.price > 0 && product.image) {
           products.push(product);
+        } else {
+          parseErrors.push({
+            docId: doc.id,
+            error: `Invalid product data: missing name, price, or image`
+          });
+          productsLogger.warn('FETCH_PRODUCTS', 'Product skipped due to invalid data', {
+            docId: doc.id,
+            hasName: !!product.name,
+            hasPrice: product.price > 0,
+            hasImage: !!product.image
+          });
         }
       } catch (error) {
-        console.error(`Error parsing product ${doc.id}:`, error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        parseErrors.push({
+          docId: doc.id,
+          error: errorMessage
+        });
+        productsLogger.error('FETCH_PRODUCTS', `Error parsing product ${doc.id}`, error as Error, {
+          docId: doc.id
+        });
       }
     });
     
+    productsLogger.info('FETCH_PRODUCTS', 'Products fetched and parsed successfully', {
+      totalProducts: products.length,
+      totalDocuments: totalDocs,
+      parseErrors: parseErrors.length,
+      skippedProducts: parseErrors.length
+    });
+    
+    if (parseErrors.length > 0) {
+      productsLogger.warn('FETCH_PRODUCTS', 'Some products failed to parse', {
+        errors: parseErrors
+      });
+    }
+    
     return products;
   } catch (error: any) {
-    console.error('Error fetching products from Firestore:', error);
-    throw new Error(error.message || 'Failed to fetch products. Please check your connection and try again.');
+    const errorMessage = error.message || 'Failed to fetch products. Please check your connection and try again.';
+    const errorCode = error.code || 'UNKNOWN';
+    
+    productsLogger.error('FETCH_PRODUCTS', 'Failed to fetch products from Firestore', error, {
+      errorCode,
+      errorMessage
+    });
+    
+    throw new Error(errorMessage);
   }
 }
 
 export async function createProduct(product: Omit<Product, 'id'>): Promise<string> {
+  productsLogger.info('CREATE_PRODUCT', 'Creating new product', {
+    name: product.name,
+    category: product.category,
+    price: product.price
+  });
+  
   try {
     // Ensure all required fields are present
     const productData = {
@@ -64,14 +117,33 @@ export async function createProduct(product: Omit<Product, 'id'>): Promise<strin
     };
     
     const ref = await addDoc(collection(db, 'products'), productData);
+    
+    productsLogger.info('CREATE_PRODUCT', 'Product created successfully', {
+      productId: ref.id,
+      name: product.name
+    });
+    
     return ref.id;
   } catch (error: any) {
-    console.error('Error creating product:', error);
-    throw new Error(error.message || 'Failed to create product. Please check your permissions and try again.');
+    const errorMessage = error.message || 'Failed to create product. Please check your permissions and try again.';
+    const errorCode = error.code || 'UNKNOWN';
+    
+    productsLogger.error('CREATE_PRODUCT', 'Failed to create product', error, {
+      errorCode,
+      errorMessage,
+      productName: product.name
+    });
+    
+    throw new Error(errorMessage);
   }
 }
 
 export async function updateProduct(productId: string, updates: Partial<Omit<Product, 'id'>>): Promise<void> {
+  productsLogger.info('UPDATE_PRODUCT', 'Updating product', {
+    productId,
+    updateFields: Object.keys(updates)
+  });
+  
   try {
     const ref = doc(db, 'products', productId);
     
@@ -92,15 +164,46 @@ export async function updateProduct(productId: string, updates: Partial<Omit<Pro
     if (updates.discount !== undefined) updateData.discount = updates.discount;
     
     await updateDoc(ref, updateData);
+    
+    productsLogger.info('UPDATE_PRODUCT', 'Product updated successfully', {
+      productId,
+      updatedFields: Object.keys(updateData)
+    });
   } catch (error: any) {
-    console.error('Error updating product:', error);
-    throw new Error(error.message || 'Failed to update product. Please check your permissions and try again.');
+    const errorMessage = error.message || 'Failed to update product. Please check your permissions and try again.';
+    const errorCode = error.code || 'UNKNOWN';
+    
+    productsLogger.error('UPDATE_PRODUCT', 'Failed to update product', error, {
+      productId,
+      errorCode,
+      errorMessage,
+      updateFields: Object.keys(updates)
+    });
+    
+    throw new Error(errorMessage);
   }
 }
 
 export async function deleteProduct(productId: string): Promise<void> {
-  const ref = doc(db, 'products', productId);
-  await deleteDoc(ref);
+  productsLogger.info('DELETE_PRODUCT', 'Deleting product', { productId });
+  
+  try {
+    const ref = doc(db, 'products', productId);
+    await deleteDoc(ref);
+    
+    productsLogger.info('DELETE_PRODUCT', 'Product deleted successfully', { productId });
+  } catch (error: any) {
+    const errorMessage = error.message || 'Failed to delete product. Please check your permissions and try again.';
+    const errorCode = error.code || 'UNKNOWN';
+    
+    productsLogger.error('DELETE_PRODUCT', 'Failed to delete product', error, {
+      productId,
+      errorCode,
+      errorMessage
+    });
+    
+    throw new Error(errorMessage);
+  }
 }
 
 

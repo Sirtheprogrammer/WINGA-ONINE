@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { fetchUserOrders } from '../services/orders';
 import { Order } from '../services/orders';
 import { useToast } from '../contexts/ToastContext';
+import { LoadingScreen } from './LoadingScreen';
 
 export const MyOrders: React.FC = () => {
   const { user } = useAuth();
@@ -93,6 +94,10 @@ export const MyOrders: React.FC = () => {
     window.history.back();
   };
 
+  if (loading) {
+    return <LoadingScreen message="Loading your orders..." />;
+  }
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -127,14 +132,7 @@ export const MyOrders: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading your orders...</p>
-            </div>
-          </div>
-        ) : orders.length === 0 ? (
+        {orders.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
             <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-800 mb-2">No Orders Yet</h3>

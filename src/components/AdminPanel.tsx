@@ -8,14 +8,16 @@ import { fetchCategoriesFromFirestore, createCategory, updateCategory, deleteCat
 import { fetchAllOrders, updateOrderStatus, fetchAllUsers, updateUser, deleteUser, setUserRole } from '../services/admin';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import { LoadingScreen } from './LoadingScreen';
 import * as Icons from 'lucide-react';
 
 type Tab = 'products' | 'orders' | 'users' | 'categories';
 
 export const AdminPanel: React.FC = () => {
-  const { user, isAdmin, logout } = useAuth();
+  const { user, isAdmin, logout, loading: authLoading } = useAuth();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<Tab>('products');
+  const [initialLoading, setInitialLoading] = useState(true);
   
   // Products state
   const [products, setProducts] = useState<Product[]>([]);
@@ -48,27 +50,56 @@ export const AdminPanel: React.FC = () => {
   const [editingCategoryId, setEditingCategoryId] = useState<string>('');
   const [showCategoryForm, setShowCategoryForm] = useState(false);
 
-  // Load data
+  // Check admin access on mount
   useEffect(() => {
-    if (activeTab === 'products') {
-      loadProducts().then(async () => {
-        // Load categories after products are loaded to calculate counts
+    if (!authLoading) {
+      if (!user || !isAdmin) {
+        // Redirect will be handled by Router, but show loading briefly
+        setTimeout(() => {
+          if (typeof window !== 'undefined') {
+            window.location.href = '/';
+          }
+        }, 100);
+      } else {
+        setInitialLoading(false);
+      }
+    }
+  }, [authLoading, user, isAdmin]);
+
+  // Load data - optimized for faster loading
+  useEffect(() => {
+    if (initialLoading || !isAdmin) return;
+    
+    // Load data based on active tab
+    const loadTabData = async () => {
+      if (activeTab === 'products') {
+        // Load products and categories in parallel for better performance
+        const [productsData] = await Promise.all([
+          fetchProductsFromFirestore()
+        ]);
+        setProducts(productsData);
+        setProductsLoading(false);
+        // Load categories with counts after products are set
+        await loadCategoriesWithCounts(productsData);
+      } else if (activeTab === 'orders') {
+        loadOrders();
+      } else if (activeTab === 'users') {
+        loadUsers();
+      } else if (activeTab === 'categories') {
+        // Load products first to calculate category counts
         const productsData = await fetchProductsFromFirestore();
         await loadCategoriesWithCounts(productsData);
-      });
-    }
-    if (activeTab === 'orders') loadOrders();
-    if (activeTab === 'users') loadUsers();
-    if (activeTab === 'categories') {
-      // Load products first to calculate category counts
-      fetchProductsFromFirestore().then(productsData => {
-        loadCategoriesWithCounts(productsData);
-      });
-    }
-  }, [activeTab]);
+      }
+    };
+    
+    loadTabData();
+  }, [activeTab, initialLoading, isAdmin]);
 
   const loadProducts = async () => {
-    setProductsLoading(true);
+    // Only show loading if products array is empty (initial load)
+    if (products.length === 0) {
+      setProductsLoading(true);
+    }
     try {
       const items = await fetchProductsFromFirestore();
       setProducts(items);
@@ -80,7 +111,10 @@ export const AdminPanel: React.FC = () => {
   };
 
   const loadOrders = async () => {
-    setOrdersLoading(true);
+    // Only show loading if orders array is empty (initial load)
+    if (orders.length === 0) {
+      setOrdersLoading(true);
+    }
     try {
       const items = await fetchAllOrders();
       setOrders(items);
@@ -92,7 +126,10 @@ export const AdminPanel: React.FC = () => {
   };
 
   const loadUsers = async () => {
-    setUsersLoading(true);
+    // Only show loading if users array is empty (initial load)
+    if (users.length === 0) {
+      setUsersLoading(true);
+    }
     try {
       const items = await fetchAllUsers();
       setUsers(items);
@@ -365,6 +402,12 @@ export const AdminPanel: React.FC = () => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
+  // Show loading during auth check or initial load
+  if (authLoading || initialLoading) {
+    return <LoadingScreen message="Loading admin panel..." />;
+  }
+
+  // Safety checks (should not reach here due to Router checks, but keep for safety)
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">

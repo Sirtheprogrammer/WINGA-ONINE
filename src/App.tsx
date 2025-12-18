@@ -3,6 +3,7 @@ import { Filter, ChevronDown } from 'lucide-react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { ProductGrid } from './components/ProductGrid';
+import { ProductGridSkeleton } from './components/ProductSkeleton';
 import { Cart } from './components/Cart';
 import { AuthModal } from './components/AuthModal';
 import { ProductDetail } from './components/ProductDetail';
@@ -111,12 +112,7 @@ function AppContent() {
 
             {/* Products Grid */}
             {productsLoading ? (
-              <div className="flex items-center justify-center py-16">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading products...</p>
-                </div>
-              </div>
+              <ProductGridSkeleton count={8} />
             ) : products.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16">
                 <div className="text-6xl mb-4">📦</div>

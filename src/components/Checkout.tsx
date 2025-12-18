@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, MapPin, Phone, Mail, CreditCard, Wallet } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { PaymentModal } from './PaymentModal';
+import { LoadingScreen } from './LoadingScreen';
 import { createOrder } from '../services/orders';
 
 type PaymentMethod = 'cash' | 'mobile-money';
 
 export const Checkout: React.FC = () => {
   const { items, totalPrice, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { showToast } = useToast();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [formData, setFormData] = useState({
-    fullName: user?.name || '',
-    email: user?.email || '',
+    fullName: '',
+    email: '',
     phone: '',
     address: '',
     city: '',
@@ -25,6 +26,17 @@ export const Checkout: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+  // Update form data when user loads
+  useEffect(() => {
+    if (user && !authLoading) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: user.name || prev.fullName,
+        email: user.email || prev.email
+      }));
+    }
+  }, [user, authLoading]);
 
   const formatTZS = (amount: number) => {
     return `TZS ${amount.toLocaleString('en-US')}`;
@@ -165,6 +177,11 @@ export const Checkout: React.FC = () => {
   const handleBack = () => {
     window.history.back();
   };
+
+  // Show loading screen while auth is loading
+  if (authLoading) {
+    return <LoadingScreen message="Loading checkout..." />;
+  }
 
   if (items.length === 0) {
     return (

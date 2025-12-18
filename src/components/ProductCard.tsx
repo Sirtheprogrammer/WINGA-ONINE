@@ -4,6 +4,7 @@ import { Product } from '../types';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { DiscountBadge } from './DiscountBadge';
+import { productsLogger } from '../services/logger';
 
 interface ProductCardProps {
   product: Product;
@@ -43,6 +44,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClic
           src={product.image}
           alt={product.name}
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            productsLogger.error('RENDER_PRODUCT', 'Failed to load product image', new Error('Image load error'), {
+              productId: product.id,
+              productName: product.name,
+              imageUrl: product.image
+            });
+            // Fallback to a placeholder or hide the image
+            (e.target as HTMLImageElement).style.display = 'none';
+          }}
         />
         {hasActiveDiscount && product.discount && (
           <div className="absolute top-3 left-3">
