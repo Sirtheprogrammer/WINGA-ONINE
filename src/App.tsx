@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Filter, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { ProductGrid } from './components/ProductGrid';
@@ -13,6 +13,7 @@ import { OfferCarousel } from './components/OfferCarousel';
 import { SnowEffect } from './components/SnowEffect';
 import { SEO } from './components/SEO';
 import { useProducts } from './hooks/useProducts';
+import { useCategories } from './hooks/useCategories';
 import { useOfferSettings } from './hooks/useOfferSettings';
 import { Product } from './types';
 
@@ -38,6 +39,7 @@ function AppContent() {
     setSortOrder
   } = useProducts();
 
+  const { categories } = useCategories();
   const { settings: offerSettings, loading: offerLoading } = useOfferSettings();
 
   const handleProductClick = (product: Product) => {
@@ -89,7 +91,7 @@ function AppContent() {
             {!offerLoading && offerSettings && offerSettings.carouselType === 'christmas' && offerSettings.isActive && (
               <SnowEffect />
             )}
-            
+
             {/* Offer Carousel */}
             {!offerLoading && offerSettings && (
               <OfferCarousel settings={offerSettings} />
@@ -97,19 +99,28 @@ function AppContent() {
 
             {/* Mobile Filter Toggle and Sort */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-              <button
-                onClick={() => setIsSidebarOpen(true)}
-                className="lg:hidden flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-sm sm:text-base"
-              >
-                <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span>Filters</span>
-              </button>
+              {/* Mobile Category Select */}
+              <div className="lg:hidden relative">
+                <select
+                  value={filters.category}
+                  onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                  className="appearance-none w-full bg-white border border-gray-300 rounded-lg px-3 sm:px-4 py-2 pr-8 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              </div>
 
               <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4">
                 <span className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">
                   {products.length} product{products.length !== 1 ? 's' : ''}
                 </span>
-                
+
                 <div className="relative flex-shrink-0">
                   <select
                     value={`${sortBy}-${sortOrder}`}
