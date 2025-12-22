@@ -34,9 +34,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClic
   };
 
   return (
-    <div 
+    <div
       onClick={() => onProductClick(product)}
-      className="bg-white rounded-lg sm:rounded-xl shadow-sm border hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden h-full flex flex-col"
+      className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border dark:border-gray-700 hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden h-full flex flex-col"
     >
       {/* Image Container */}
       <div className="relative overflow-hidden bg-gray-100">
@@ -56,8 +56,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClic
             }}
           />
         ) : (
-          <div className="w-full h-40 sm:h-48 flex items-center justify-center bg-gray-200">
-            <span className="text-gray-400 text-sm">No Image</span>
+          <div className="w-full h-40 sm:h-48 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+            <span className="text-gray-400 dark:text-gray-500 text-sm">No Image</span>
           </div>
         )}
         {hasActiveDiscount && product.discount && (
@@ -72,11 +72,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClic
         )}
         <button
           onClick={handleWishlistToggle}
-          className={`absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-full transition-all duration-200 ${
-            inWishlist 
-              ? 'bg-red-500 text-white' 
-              : 'bg-white/80 hover:bg-white text-gray-600 hover:text-red-500'
-          } ${!product.inStock ? 'right-16 sm:right-20' : ''}`}
+          className={`absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-full transition-all duration-200 ${inWishlist
+            ? 'bg-red-500 text-white'
+            : 'bg-white/80 hover:bg-white text-gray-600 hover:text-red-500'
+            } ${!product.inStock ? 'right-16 sm:right-20' : ''}`}
         >
           <Heart className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${inWishlist ? 'fill-current' : ''}`} />
         </button>
@@ -84,11 +83,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClic
           <button
             onClick={handleAddToCart}
             disabled={!product.inStock}
-            className={`w-full py-1.5 sm:py-2 px-3 sm:px-4 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 ${
-              product.inStock
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
+            className={`w-full py-1.5 sm:py-2 px-3 sm:px-4 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 ${product.inStock
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
           >
             <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 inline mr-1.5 sm:mr-2" />
             {product.inStock ? 'Add to Cart' : 'Out of Stock'}
@@ -98,8 +96,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClic
 
       {/* Product Info */}
       <div className="p-3 sm:p-4 flex-1 flex flex-col">
-        <div className="text-xs sm:text-sm text-gray-500 mb-1 truncate">{product.brand}</div>
-        <h3 className="font-semibold text-sm sm:text-base text-gray-800 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors duration-200 flex-1">
+        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1 truncate">{product.brand}</div>
+        <h3 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100 mb-2 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 flex-1">
           {product.name}
         </h3>
         <div className="flex items-center mb-2 flex-wrap gap-1">
@@ -107,11 +105,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClic
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                className={`h-3 w-3 sm:h-4 sm:w-4 ${
-                  i < Math.floor(product.rating)
-                    ? 'text-yellow-400 fill-current'
-                    : 'text-gray-300'
-                }`}
+                className={`h-3 w-3 sm:h-4 sm:w-4 ${i < Math.floor(product.rating)
+                  ? 'text-yellow-400 fill-current'
+                  : 'text-gray-300'
+                  }`}
               />
             ))}
           </div>
@@ -121,7 +118,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClic
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-0 mt-auto">
           <div className="flex items-center flex-wrap gap-1.5 sm:gap-2">
-            <span className="text-lg sm:text-xl font-bold text-gray-900">
+            <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
               TZS {product.price.toLocaleString()}
             </span>
             {product.originalPrice && (

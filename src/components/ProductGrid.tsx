@@ -19,8 +19,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products, onProductCli
     return (
       <div className="col-span-full flex flex-col items-center justify-center py-16">
         <div className="text-6xl mb-4">📦</div>
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">No products available</h3>
-        <p className="text-gray-500 text-center max-w-md">
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">No products available</h3>
+        <p className="text-gray-500 dark:text-gray-400 text-center max-w-md">
           There are no products in the catalog yet. Check back soon or contact the administrator.
         </p>
       </div>

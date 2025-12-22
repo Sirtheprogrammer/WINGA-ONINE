@@ -54,7 +54,7 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors duration-200">
       <SEO
         title="BEIPOA online - Best Cheap Prices & Affordable Products Tanzania"
         description="BEIPOA online offers the best cheap prices on electronics, fashion, home goods, and more. Find affordable products with fast delivery across Tanzania. Compare prices and save money today!"
@@ -104,7 +104,7 @@ function AppContent() {
                 <select
                   value={filters.category}
                   onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                  className="appearance-none w-full bg-white border border-gray-300 rounded-lg px-3 sm:px-4 py-2 pr-8 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 sm:px-4 py-2 pr-8 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
                 >
                   <option value="">All Categories</option>
                   {categories.map((category) => (
@@ -125,7 +125,7 @@ function AppContent() {
                   <select
                     value={`${sortBy}-${sortOrder}`}
                     onChange={(e) => handleSortChange(e.target.value)}
-                    className="appearance-none bg-white border border-gray-300 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 pr-7 sm:pr-8 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 pr-7 sm:pr-8 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
                   >
                     <option value="name-asc">Name: A to Z</option>
                     <option value="name-desc">Name: Z to A</option>
@@ -174,8 +174,14 @@ function AppContent() {
   );
 }
 
+import { ThemeProvider } from './contexts/ThemeContext';
+
 function App() {
-  return <AppContent />;
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
 }
 
 export default App;

@@ -5,6 +5,7 @@ import { useWishlist } from '../contexts/WishlistContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { SearchAutocomplete } from './SearchAutocomplete';
+import { ThemeToggle } from './ThemeToggle';
 import { navigateToHome, navigateToOrders } from '../utils/navigation';
 import { Product } from '../types';
 
@@ -17,9 +18,9 @@ interface HeaderProps {
   onProductClick?: (product: Product) => void; // Handler for product selection
 }
 
-export const Header: React.FC<HeaderProps> = ({ 
-  onSearchChange, 
-  onCartClick, 
+export const Header: React.FC<HeaderProps> = ({
+  onSearchChange,
+  onCartClick,
   onAuthClick,
   onWishlistClick,
   products = [],
@@ -68,12 +69,12 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+    <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 sticky top-0 z-50 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0">
-            <div className="text-xl sm:text-2xl font-bold text-blue-600">BEIPOA online</div>
+            <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">BEIPOA online</div>
           </div>
 
           {/* Search Bar - Hidden on mobile */}
@@ -87,11 +88,26 @@ export const Header: React.FC<HeaderProps> = ({
             />
           </div>
 
-          {/* Mobile Cart Icon - Visible on mobile */}
+          {/* Mobile Icons - Visible on mobile */}
           <div className="md:hidden flex items-center space-x-1 sm:space-x-2">
+            <ThemeToggle className="mr-1" />
+
+            <button
+              onClick={onWishlistClick}
+              className="relative p-1.5 sm:p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+              title="Wishlist"
+            >
+              <Heart className="h-5 w-5 sm:h-6 sm:w-6" />
+              {wishlistItems.length > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center font-semibold text-[10px] sm:text-xs">
+                  {wishlistItems.length}
+                </span>
+              )}
+            </button>
+
             <button
               onClick={onCartClick}
-              className="relative p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+              className="relative p-1.5 sm:p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
               title="Shopping Cart"
             >
               <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -105,6 +121,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Navigation Icons - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
+            <ThemeToggle />
             {user && (
               <button
                 onClick={handleMyOrders}
@@ -117,7 +134,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             <button
               onClick={onWishlistClick}
-              className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+              className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
               title="Wishlist"
             >
               <Heart className="h-6 w-6" />
@@ -130,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             <button
               onClick={onCartClick}
-              className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+              className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
               title="Shopping Cart"
             >
               <ShoppingCart className="h-6 w-6" />
@@ -196,7 +213,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-t bg-white">
+        <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {user && (
               <>
@@ -221,7 +238,7 @@ export const Header: React.FC<HeaderProps> = ({
               <Heart className="h-5 w-5 mr-3" />
               Wishlist ({wishlistItems.length})
             </button>
-            
+
             <button
               onClick={() => {
                 onCartClick();
@@ -232,7 +249,7 @@ export const Header: React.FC<HeaderProps> = ({
               <ShoppingCart className="h-5 w-5 mr-3" />
               Cart ({totalItems})
             </button>
-            
+
             {user ? (
               <>
                 <div className="border-t my-1"></div>
@@ -263,6 +280,9 @@ export const Header: React.FC<HeaderProps> = ({
                 Login / Sign Up
               </button>
             )}
+
+            <div className="border-t my-1"></div>
+            {/* Theme Toggle moved to header */}
           </div>
         </div>
       )}
