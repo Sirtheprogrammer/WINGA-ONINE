@@ -177,7 +177,7 @@ export const MyOrders: React.FC = () => {
                         {formatTZS(order.totalAmount)}
                       </p>
                       <p className="text-sm text-gray-500 capitalize">
-                        {order.paymentMethod.replace('-', ' ')} • {order.paymentStatus}
+                        {order.paymentMethod === 'whatsapp' ? 'WhatsApp (Mobile Money)' : order.paymentMethod.replace('-', ' ')} • {order.paymentStatus}
                       </p>
                     </div>
                   </div>

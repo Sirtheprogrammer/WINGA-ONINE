@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Package, Users, ShoppingBag, Plus, Edit2, Trash2, X, Save, Search, Filter, Tag, LogOut, Upload, Loader2, Settings } from 'lucide-react';
+import { Package, Users, ShoppingBag, Plus, Edit2, Trash2, X, Save, Search, Filter, Tag, LogOut, Upload, Loader2, Settings, MessageSquare, ExternalLink, Phone } from 'lucide-react';
 import { Product, Category } from '../types';
 import { Order } from '../services/orders';
 import { User } from '../types';
@@ -11,6 +11,7 @@ import { useToast } from '../contexts/ToastContext';
 import { LoadingScreen } from './LoadingScreen';
 import { uploadImageToImgBB, uploadMultipleImagesToImgBB, validateImageFile } from '../services/imgbb';
 import { OfferSettings, CarouselType, getOfferSettings, updateOfferSettings } from '../services/offerSettings';
+import { CheckoutSettings, getCheckoutSettings, updateCheckoutSettings, cleanWhatsAppNumber, DEFAULT_CHECKOUT_SETTINGS } from '../services/checkoutSettings';
 import { navigateToHome } from '../utils/navigation';
 import * as Icons from 'lucide-react';
 
@@ -68,6 +69,11 @@ export const AdminPanel: React.FC = () => {
   });
   const [offerSettingsLoading, setOfferSettingsLoading] = useState(true);
 
+  // Checkout / WhatsApp Settings state
+  const [checkoutSettings, setCheckoutSettings] = useState<CheckoutSettings>(DEFAULT_CHECKOUT_SETTINGS);
+  const [checkoutSettingsLoading, setCheckoutSettingsLoading] = useState(true);
+  const [savingCheckoutSettings, setSavingCheckoutSettings] = useState(false);
+
   // Check admin access on mount
   useEffect(() => {
     if (!authLoading) {
@@ -84,27 +90,43 @@ export const AdminPanel: React.FC = () => {
     }
   }, [authLoading, user, isAdmin]);
 
-  // Load offer settings when admin and settings tab is accessed
+  // Load offer settings and checkout settings when admin and settings tab is accessed
   useEffect(() => {
     if (initialLoading || !isAdmin) return;
     
-    if (activeTab === 'settings' && offerSettingsLoading) {
-      const loadSettings = async () => {
-        try {
-          const settings = await getOfferSettings();
-          // Convert ISO date strings to datetime-local format
-          const startDate = settings.startDate ? new Date(settings.startDate).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16);
-          const endDate = settings.endDate ? new Date(settings.endDate).toISOString().slice(0, 16) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
-          setOfferSettings({ ...settings, startDate, endDate });
-          setOfferSettingsLoading(false);
-        } catch (error) {
-          console.error('Error loading offer settings:', error);
-          setOfferSettingsLoading(false);
-        }
-      };
-      loadSettings();
+    if (activeTab === 'settings') {
+      if (offerSettingsLoading) {
+        const loadSettings = async () => {
+          try {
+            const settings = await getOfferSettings();
+            // Convert ISO date strings to datetime-local format
+            const startDate = settings.startDate ? new Date(settings.startDate).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16);
+            const endDate = settings.endDate ? new Date(settings.endDate).toISOString().slice(0, 16) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
+            setOfferSettings({ ...settings, startDate, endDate });
+            setOfferSettingsLoading(false);
+          } catch (error) {
+            console.error('Error loading offer settings:', error);
+            setOfferSettingsLoading(false);
+          }
+        };
+        loadSettings();
+      }
+
+      if (checkoutSettingsLoading) {
+        const loadCheckout = async () => {
+          try {
+            const cs = await getCheckoutSettings();
+            setCheckoutSettings(cs);
+            setCheckoutSettingsLoading(false);
+          } catch (error) {
+            console.error('Error loading checkout settings:', error);
+            setCheckoutSettingsLoading(false);
+          }
+        };
+        loadCheckout();
+      }
     }
-  }, [activeTab, initialLoading, isAdmin, offerSettingsLoading]);
+  }, [activeTab, initialLoading, isAdmin, offerSettingsLoading, checkoutSettingsLoading]);
 
   // Load data - optimized for faster loading
   useEffect(() => {
@@ -1041,12 +1063,26 @@ export const AdminPanel: React.FC = () => {
                               <h4 className="font-semibold text-xs sm:text-sm text-gray-700 mb-2">Customer</h4>
                               <p className="text-xs sm:text-sm text-gray-600 break-words">{order.deliveryInfo.fullName}</p>
                               <p className="text-xs sm:text-sm text-gray-600 break-words">{order.deliveryInfo.email}</p>
-                              <p className="text-xs sm:text-sm text-gray-600">{order.deliveryInfo.phone}</p>
+                              <p className="text-xs sm:text-sm text-gray-600 font-mono">{order.deliveryInfo.phone}</p>
+                              {order.deliveryInfo.phone && (
+                                <a
+                                  href={`https://wa.me/${cleanWhatsAppNumber(order.deliveryInfo.phone)}?text=${encodeURIComponent(`Habari ${order.deliveryInfo.fullName}, ninawasiliana nawe kutoka ${checkoutSettings.storeName || 'BEIPOA online'} kuhusiana na agizo lako #${order.id?.substring(0, 8).toUpperCase()}.`)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors"
+                                >
+                                  <MessageSquare className="h-3.5 w-3.5 text-emerald-600" />
+                                  Chat on WhatsApp
+                                </a>
+                              )}
                             </div>
                             <div>
                               <h4 className="font-semibold text-xs sm:text-sm text-gray-700 mb-2">Delivery Address</h4>
                               <p className="text-xs sm:text-sm text-gray-600 break-words">{order.deliveryInfo.address}</p>
                               <p className="text-xs sm:text-sm text-gray-600">{order.deliveryInfo.city}</p>
+                              {order.deliveryInfo.notes && (
+                                <p className="text-xs text-gray-500 italic mt-1">Notes: {order.deliveryInfo.notes}</p>
+                              )}
                             </div>
                           </div>
                           <div>
@@ -1066,7 +1102,9 @@ export const AdminPanel: React.FC = () => {
                           </div>
                           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 pt-2 border-t">
                             <span className="font-semibold text-xs sm:text-sm">Payment:</span>
-                            <span className="text-xs sm:text-sm capitalize">{order.paymentMethod.replace('-', ' ')} • {order.paymentStatus}</span>
+                            <span className="text-xs sm:text-sm capitalize font-medium">
+                              {order.paymentMethod === 'whatsapp' ? 'WhatsApp (Mobile Money)' : order.paymentMethod.replace('-', ' ')} • {order.paymentStatus}
+                            </span>
                           </div>
                         </div>
                       )}
@@ -1364,6 +1402,144 @@ export const AdminPanel: React.FC = () => {
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <div className="space-y-6">
+            {/* WhatsApp Checkout Settings */}
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <div className="mb-4 sm:mb-6 pb-3 border-b">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-emerald-600" />
+                  Checkout & WhatsApp Settings (Mipangilio ya WhatsApp ya Oda)
+                </h2>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                  Weka namba ya simu ya WhatsApp itakayopokea oda zote na vikapu vyote (whole cart) kutoka kwa wateja wakati wa checkout.
+                </p>
+              </div>
+
+              {checkoutSettingsLoading ? (
+                <div className="text-center py-8">Loading checkout settings...</div>
+              ) : (
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setSavingCheckoutSettings(true);
+                    try {
+                      await updateCheckoutSettings(checkoutSettings);
+                      showToast('WhatsApp & Checkout settings saved successfully!', 'success');
+                    } catch (error: any) {
+                      showToast(`Failed to update checkout settings: ${error.message}`, 'error');
+                    } finally {
+                      setSavingCheckoutSettings(false);
+                    }
+                  }}
+                  className="space-y-4 sm:space-y-6"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        WhatsApp Phone Number (Namba ya Kupokea Oda) *
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                          <Phone className="h-4 w-4" />
+                        </div>
+                        <input
+                          type="text"
+                          required
+                          value={checkoutSettings.whatsappNumber}
+                          onChange={(e) => setCheckoutSettings({ ...checkoutSettings, whatsappNumber: e.target.value })}
+                          placeholder="e.g. 255712345678 or +255 712 345 678"
+                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm sm:text-base font-mono"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Format: 255XXXXXXXXX. Wateja watakapobofya <em>Place Order</em>, wataelekezwa kwenye namba hii wakiwa na orodha ya bidhaa zote.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Store Name (Jina la Duka Kwenye Ujumbe) *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={checkoutSettings.storeName}
+                        onChange={(e) => setCheckoutSettings({ ...checkoutSettings, storeName: e.target.value })}
+                        placeholder="e.g. BEIPOA online"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Jina litakaloonekana kwenye kichwa cha ujumbe wa oda WhatsApp.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Custom Greeting / Note (Ujumbe wa Mwanzo / Maelekezo)
+                    </label>
+                    <textarea
+                      value={checkoutSettings.customGreeting || ''}
+                      onChange={(e) => setCheckoutSettings({ ...checkoutSettings, customGreeting: e.target.value })}
+                      placeholder="e.g. Hello Admin! I would like to confirm my order from the website."
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="enableWhatsAppCheckout"
+                        checked={checkoutSettings.enableWhatsAppCheckout}
+                        onChange={(e) => setCheckoutSettings({ ...checkoutSettings, enableWhatsAppCheckout: e.target.checked })}
+                        className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="enableWhatsAppCheckout" className="ml-2 text-sm font-medium text-gray-700">
+                        Enable WhatsApp Checkout (Washa Agizo la WhatsApp)
+                      </label>
+                    </div>
+
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="enableCashOnDelivery"
+                        checked={checkoutSettings.enableCashOnDelivery}
+                        onChange={(e) => setCheckoutSettings({ ...checkoutSettings, enableCashOnDelivery: e.target.checked })}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="enableCashOnDelivery" className="ml-2 text-sm font-medium text-gray-700">
+                        Enable Cash on Delivery (Washa Lipa Ukipokea)
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 pt-4 border-t">
+                    <button
+                      type="submit"
+                      disabled={savingCheckoutSettings}
+                      className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-colors text-sm sm:text-base disabled:opacity-50 inline-flex items-center gap-2"
+                    >
+                      <Save className="h-4 w-4" />
+                      {savingCheckoutSettings ? 'Saving...' : 'Save WhatsApp Settings'}
+                    </button>
+
+                    {checkoutSettings.whatsappNumber && (
+                      <a
+                        href={`https://wa.me/${cleanWhatsAppNumber(checkoutSettings.whatsappNumber)}?text=${encodeURIComponent('Habari! Hili ni jaribio la namba ya WhatsApp ya duka kutoka ' + (checkoutSettings.storeName || 'BEIPOA online') + '.')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-300 rounded-lg font-medium hover:bg-emerald-100 transition-colors text-sm inline-flex items-center gap-1.5"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Test WhatsApp Link (Jaribu Namba)
+                      </a>
+                    )}
+                  </div>
+                </form>
+              )}
+            </div>
+
             <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
               <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Offer Carousel Settings</h2>
               

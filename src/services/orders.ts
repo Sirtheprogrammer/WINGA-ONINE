@@ -7,7 +7,7 @@ export interface Order {
   userId: string;
   items: CartItem[];
   totalAmount: number;
-  paymentMethod: 'cash' | 'mobile-money';
+  paymentMethod: 'cash' | 'mobile-money' | 'whatsapp';
   paymentStatus: 'pending' | 'completed' | 'failed';
   transactionId?: string;
   deliveryInfo: {
