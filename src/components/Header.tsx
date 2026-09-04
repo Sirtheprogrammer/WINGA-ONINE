@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { ShoppingCart, User, Heart, Menu, X, Package, LogOut } from 'lucide-react';
+import { ShoppingCart, User, Heart, Menu, X, Package, LogOut, ShieldCheck } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { SearchAutocomplete } from './SearchAutocomplete';
 import { ThemeToggle } from './ThemeToggle';
-import { navigateToHome, navigateToOrders } from '../utils/navigation';
+import { navigateToHome, navigateToOrders, navigateToAdmin } from '../utils/navigation';
 import { Product } from '../types';
 
 interface HeaderProps {
@@ -29,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { totalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
-  const { user, logout } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const { showToast } = useToast();
 
   const handleSearchChange = (query: string) => {
@@ -160,6 +160,16 @@ export const Header: React.FC<HeaderProps> = ({
 
             {user ? (
               <div className="flex items-center space-x-1 sm:space-x-2">
+                {isAdmin && (
+                  <button
+                    onClick={() => navigateToAdmin()}
+                    className="flex items-center space-x-1 px-2.5 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors duration-200"
+                    title="Go to Admin Panel"
+                  >
+                    <ShieldCheck className="h-4 w-4 text-blue-600" />
+                    <span className="hidden sm:inline">Admin Panel</span>
+                  </button>
+                )}
                 <div className="flex items-center space-x-1 sm:space-x-2 px-1 sm:px-2">
                   {user.avatar ? (
                     <img src={user.avatar} alt={user.name} className="h-7 w-7 sm:h-8 sm:w-8 rounded-full" />
@@ -217,6 +227,18 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="px-2 pt-2 pb-3 space-y-1">
             {user && (
               <>
+                {isAdmin && (
+                  <button
+                    onClick={() => {
+                      navigateToAdmin();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex items-center w-full px-3 py-2 text-base font-semibold text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200"
+                  >
+                    <ShieldCheck className="h-5 w-5 mr-3 text-blue-600" />
+                    Admin Panel
+                  </button>
+                )}
                 <button
                   onClick={handleMyOrders}
                   className="flex items-center w-full px-3 py-2 text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors duration-200"

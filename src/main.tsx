@@ -48,13 +48,6 @@ function Router() {
         return;
       }
     }
-    
-    // Auto-redirect admin users from home page to admin panel
-    if ((path === '/' || path === '') && user && isAdmin) {
-      navigateToAdmin();
-      setCurrentPath('/admin');
-      return;
-    }
   }, [loading, user, isAdmin]);
   
   // Show loading screen during initial auth check
@@ -71,11 +64,6 @@ function Router() {
       return <LoadingScreen message="Redirecting..." />;
     }
     return <AdminPanel />;
-  }
-  
-  // Auto-redirect admin users from home page to admin panel
-  if ((path === '/' || path === '') && user && isAdmin) {
-    return <LoadingScreen message="Redirecting to admin panel..." />;
   }
   
   if (path.startsWith('/checkout')) {
